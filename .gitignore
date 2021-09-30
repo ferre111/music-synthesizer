@@ -52,5 +52,5 @@ Mkfile.old
 dkms.conf
 
 # Debug and Release directory
-Debug/**
-Release/**
+Debug/
+Release/
