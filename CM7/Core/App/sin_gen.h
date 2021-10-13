@@ -32,18 +32,17 @@ enum note
     note_B
 };
 
-enum gen_status
+typedef enum gen_status_T
 {
     gen_status_ON,
     gen_status_SUSTAIN,
     gen_status_OFF
-};
+} gen_status;
 
 struct sin_gen_voices
 {
-    uint32_t freq;
-    uint32_t len;
     enum gen_status status;
+    uint32_t freq;
     uint32_t sample_multiple;
     uint8_t key_number;
     uint16_t sample_offset;
@@ -52,10 +51,10 @@ struct sin_gen_voices
 struct sin_gen
 {
     volatile bool dma_flag;
-    int16_t table_1[PACKED_SIZE];
-    int16_t table_2[PACKED_SIZE];
-    int16_t *table;
-    struct sin_gen_voices *voices_tab;
+    int16_t table[PACKED_SIZE * 2];     //make one "double" array, with this we can use DMA in circular mode
+                                        //and it is not required to again set transmission when whole buffer has been sent
+    int16_t *table_ptr;                 //pointer to currently edited "virtual" buffer
+    struct sin_gen_voices *voices_tab;  //
 
     bool buff_ready;//todo
     uint32_t max_len;

@@ -32,6 +32,7 @@
 #include "sin_gen.h"
 #include "usbh_MIDI.h"
 #include "midi.h"
+#include "utility.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -149,6 +150,7 @@ Error_Handler();
 //  sin_gen_set_play(true, 50);
 //  sin_gen_set_play(true, 100);
   memcpy(buf, wavetable, 48000);
+  utility_ErrLedOn();
   while (1)
   {
       static uint32_t timestamp;
