@@ -26,7 +26,7 @@ struct sin_gen_voices voices_tab[VOICES_COUNT] =
         [9] = {.status = gen_status_OFF, .freq = 100}
 };
 
-struct sin_gen ctx = {.voices_tab = voices_tab, .dma_flag = true};
+volatile struct sin_gen ctx = {.voices_tab = voices_tab, .dma_flag = true, .max_len = PACKED_SIZE};
 
 //----------------------------------------------------------------------
 
@@ -59,24 +59,30 @@ void sin_gen_init(void)
 
     for(uint8_t i = 0; i < VOICES_COUNT; i++)
         calc_len(i);
+
+    HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table, PACKED_SIZE);
 }
 
 //----------------------------------------------------------------------
 
 void sin_gen_process(void)
 {
-    int32_t max_len = 0;
-    uint32_t tmp_len = 0;
+//    static uint32_t tmp; //todo;
+//    int32_t max_len = 0;
+    uint32_t currnet_sample = 0;
     int32_t scaling_factor = 0;
 
-    /*calc max len*/
-    for(uint8_t i = 0; i < VOICES_COUNT; i++)
+    if(ctx.dma_flag)
     {
-        if(ctx.voices_tab[i].len > max_len)
-        {
-            max_len = ctx.voices_tab[i].len;
-        }
-    }
+//    /*calc max len*/
+//    for(uint8_t i = 0; i < VOICES_COUNT; i++)
+//    {
+//        if(ctx.voices_tab[i].len > max_len)
+//        {
+//            max_len = ctx.voices_tab[i].len;
+//            ctx.max_len = max_len;
+//        }
+//    }
 
     if(ctx.table == ctx.table_1)
     {
@@ -88,7 +94,7 @@ void sin_gen_process(void)
     }
 
     /*clear table */
-    for(uint32_t i = 0; i < COUNT_OF_SAMPLE_SEND_ARR; i++)
+    for(uint32_t i = 0; i < PACKED_SIZE; i++)
     {
         ctx.table[i] = 0;
     }
@@ -100,43 +106,45 @@ void sin_gen_process(void)
 //    }
     scaling_factor = VOICES_COUNT;
     //TODO
-    scaling_factor = 1;
+//   scaling_factor = 1;
 
-    for(uint8_t i = 0; i < VOICES_COUNT; i++)
+    for (uint8_t i = 0; i < VOICES_COUNT; i++)
     {
-        while(max_len - tmp_len) //todo sprawdz se
+        do
         {
             switch(ctx.voices_tab[i].status)
             {
             case gen_status_ON:
-                ctx.table[tmp_len * 2] += wavetable[ctx.voices_tab[i].sample_index] / scaling_factor;
+                ctx.table[currnet_sample * 2] += wavetable[ctx.voices_tab[i].sample_multiple] / scaling_factor;
                 break;
             case gen_status_SUSTAIN:
-                ctx.table[tmp_len * 2] += ((max_len - (int32_t)tmp_len) * wavetable[ctx.voices_tab[i].sample_index] / max_len) / scaling_factor;
+                ctx.table[currnet_sample * 2] += ((int32_t)(PACKED_SIZE - (currnet_sample * 2)) * (int32_t)wavetable[ctx.voices_tab[i].sample_multiple] / PACKED_SIZE) / scaling_factor;
                 break;
             case gen_status_OFF:
-                ctx.voices_tab[i].sample_index = 0;
-                ctx.table[tmp_len * 2] += 0;
+                ctx.table[currnet_sample * 2] += 0;
                 break;
             }
 
-            ctx.table[tmp_len * 2 + 1] = 0; //second channel
-            ctx.voices_tab[i].sample_index += ctx.voices_tab[i].freq;
-            if(ctx.voices_tab[i].sample_index > (SAMPLE_COUNT - 1)) ctx.voices_tab[i].sample_index = ctx.voices_tab[i].sample_index % SAMPLE_COUNT;
-            tmp_len++;
-        }
-        tmp_len = 0;
+            ctx.voices_tab[i].sample_multiple += ctx.voices_tab[i].freq;
+            if (ctx.voices_tab[i].sample_multiple > (SAMPLE_COUNT - 1)) ctx.voices_tab[i].sample_multiple = ctx.voices_tab[i].sample_multiple % SAMPLE_COUNT;
+
+            ctx.table[currnet_sample * 2 + 1] = 0; //second channel
+
+            currnet_sample++;
+        } while (0 != (PACKED_SIZE - currnet_sample * 2)); //multiple by two because there are two channels
+
+
+        currnet_sample = 0;
         if(ctx.voices_tab[i].status == gen_status_SUSTAIN)
         {
             ctx.voices_tab[i].status = gen_status_OFF;
         }
     }
 
-    while(!ctx.dma_flag);
-    HAL_I2S_Transmit_DMA(&hi2s1, ctx.table, max_len * 2);
-//    HAL_I2S_Transmit_DMA(&hi2s1, buf, 48000);
     ctx.dma_flag = false;
+    ctx.buff_ready = true;
     //HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -192,14 +200,35 @@ static void calc_len(uint8_t voice_index)
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    ctx.dma_flag = true;
+    if(&hi2s1 == hi2s)
+    {
+        ctx.dma_flag = true;
+        HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table, PACKED_SIZE);
+        if (ctx.buff_ready)
+        {
+            printf("ok\n");
+        }
+        else
+        {
+            printf("not ok\n");
+        }
+        ctx.buff_ready = false;
+    }
+}
+
+void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s)
+{
+    if(&hi2s1 == hi2s)
+    {
+        __NOP();
+    }
 }
 
 //----------------------------------------------------------------------
 
 //void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 //{
-//    dma_flag = 1;
+//    ctx.dma_flag = 1;
 //}
 
 bool get_flag(void)

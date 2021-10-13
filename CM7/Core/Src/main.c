@@ -21,12 +21,17 @@
 #include "main.h"
 #include "dma.h"
 #include "i2s.h"
+#include "tim.h"
+#include "usart.h"
+#include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "sin_gen.h"
+#include "usbh_MIDI.h"
+#include "midi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +45,7 @@
 #ifndef HSEM_ID_0
 #define HSEM_ID_0 (0U) /* HW semaphore 0*/
 #endif
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,6 +68,12 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint16_t buf[48000];
+
+int _write(int file, char *ptr, int len)
+{
+  HAL_UART_Transmit(&huart2, (uint8_t*)ptr++, len, 100);
+  return len;
+}
 
 /* USER CODE END 0 */
 
@@ -124,26 +136,49 @@ Error_Handler();
   MX_GPIO_Init();
   MX_I2S1_Init();
   MX_DMA_Init();
+  MX_USB_HOST_Init();
+  MX_USART2_UART_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
   sin_gen_init();
+  HAL_TIM_Base_Start_IT(&htim17);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  sin_gen_set_play(true, 250);
+//  sin_gen_set_play(true, 50);
+//  sin_gen_set_play(true, 100);
   memcpy(buf, wavetable, 48000);
   while (1)
   {
+      static uint32_t timestamp;
+      static uint8_t flag;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 //      while(!get_flag())
 //      {
-//          __NOP();
+//
 //      }
 //      HAL_I2S_Transmit_DMA(&hi2s1, buf, 48000);
 //      set_flag(false);
-      sin_gen_process();
+//      set_flag(false);
+      MIDI_App_Process();
+      MX_USB_HOST_Process();
+//      if (HAL_GetTick() - timestamp > 1000)
+//      {
+//          if (flag)
+//          {
+//              sin_gen_set_play(true, 50);
+//              flag = 0;
+//          }
+//          else
+//          {
+//              sin_gen_set_play(false, 50);
+//              flag = 255;
+//          }
+//          timestamp = HAL_GetTick();
+//      }
   }
   /* USER CODE END 3 */
 }
@@ -176,9 +211,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 2;
-  RCC_OscInitStruct.PLL.PLLN = 120;
+  RCC_OscInitStruct.PLL.PLLN = 200;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 3;
+  RCC_OscInitStruct.PLL.PLLQ = 5;
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -194,13 +229,13 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }

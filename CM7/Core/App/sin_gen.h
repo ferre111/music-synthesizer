@@ -12,7 +12,7 @@
 #include "stdbool.h"
 #include "i2s.h"
 
-#define COUNT_OF_SAMPLE_SEND_ARR 1000
+#define PACKED_SIZE 4800 //size of data (in words) sends by one DMA transfer
 #define VOICES_COUNT 10
 
 
@@ -44,17 +44,21 @@ struct sin_gen_voices
     uint32_t freq;
     uint32_t len;
     enum gen_status status;
-    uint32_t sample_index;
+    uint32_t sample_multiple;
     uint8_t key_number;
+    uint16_t sample_offset;
 };
 
 struct sin_gen
 {
-    bool dma_flag;
-    int16_t table_1[COUNT_OF_SAMPLE_SEND_ARR];
-    int16_t table_2[COUNT_OF_SAMPLE_SEND_ARR];
+    volatile bool dma_flag;
+    int16_t table_1[PACKED_SIZE];
+    int16_t table_2[PACKED_SIZE];
     int16_t *table;
     struct sin_gen_voices *voices_tab;
+
+    bool buff_ready;//todo
+    uint32_t max_len;
 };
 
 float note_freq[12];

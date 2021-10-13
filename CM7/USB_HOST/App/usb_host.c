@@ -23,9 +23,11 @@
 
 #include "usb_host.h"
 #include "usbh_core.h"
-#include "usbh_MIDI.h"
+#include "usbh_audio.h"
 
 /* USER CODE BEGIN Includes */
+#include "usbh_MIDI.h"
+#include "midi.h"
 
 /* USER CODE END Includes */
 
@@ -111,10 +113,12 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
 
   case HOST_USER_DISCONNECTION:
   Appli_state = APPLICATION_DISCONNECT;
+  MIDI_App_SetState(MIDI_APP_DISCONNECT);
   break;
 
   case HOST_USER_CLASS_ACTIVE:
   Appli_state = APPLICATION_READY;
+  MIDI_App_SetState(MIDI_APP_START);
   break;
 
   case HOST_USER_CONNECTION:

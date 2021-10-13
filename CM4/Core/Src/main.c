@@ -20,14 +20,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
-#include "usart.h"
-#include "usb_host.h"
 #include "gpio.h"
-#include "stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,7 +60,7 @@
 /* USER CODE BEGIN 0 */
 int _write(int file, char *ptr, int len)
 {
-  HAL_UART_Transmit(&huart2, (uint8_t*)ptr++, len, 100);
+ // HAL_UART_Transmit(&huart2, (uint8_t*)ptr++, len, 100);
   return len;
 }
 /* USER CODE END 0 */
@@ -109,8 +106,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_DMA_Init();
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
-  MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -123,7 +118,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      MX_USB_HOST_Process();
+//      MX_USB_HOST_Process();
   }
   /* USER CODE END 3 */
 }
