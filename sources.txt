@@ -1,1 +1,9 @@
 https://www.cypress.com/file/134171/download
+https://www.usb.org/sites/default/files/USB%20MIDI%20v2_0.pdf
+https://www.usb.org/sites/default/files/midi10.pdf
+https://www.midi.org/specifications/midi-2-0-specifications/ump-protocol-specifications/universal-midi-packet-and-midi-2-0-protocol-specification
+file:///C:/Users/karol/Downloads/M2-104-UM_v1-0_UMP_and_MIDI_2-0_Protocol_Specification.pdf (xD)
+https://www.usb.org/sites/default/files/USB%20MIDI%20v2_0.pdf
+https://sound.eti.pg.gda.pl/student/eim/synteza/pojecia.html
+https://www.youtube.com/watch?v=vCcALaGNlyw
+https://www.st.com/resource/en/application_note/dm00273990-digital-signal-processing-for-stm32-microcontrollers-using-cmsis-stmicroelectronics.pdf

@@ -12,11 +12,14 @@
 #include "stdbool.h"
 #include "i2s.h"
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 #define PACKED_SIZE 4800 //size of data (in words) sends by one DMA transfer
 #define VOICES_COUNT 10
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
-enum note
+typedef enum note_T
 {
     note_C,
     note_Db,
@@ -30,42 +33,71 @@ enum note
     note_A,
     note_Bb,
     note_B
-};
+} note;
 
-typedef enum gen_status_T
+typedef enum voice_status_T
 {
-    gen_status_ON,
-    gen_status_SUSTAIN,
-    gen_status_OFF
-} gen_status;
+    voice_status_Attack,
+    voice_status_Decay,
+    voice_status_Sustain,
+    voice_status_Release,
+    voice_status_Off
+} voice_status;
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 struct sin_gen_voices
 {
-    enum gen_status status;
+    voice_status voice_status;
     uint32_t freq;
     uint32_t sample_multiple;
     uint8_t key_number;
-    uint16_t sample_offset;
+
+    uint32_t attack_counter;
+    uint32_t decay_counter;
+    uint32_t release_counter;
 };
 
 struct sin_gen
 {
+    /* if this flag is set sin_gen_process should fill buffer */
     volatile bool dma_flag;
-    int16_t table[PACKED_SIZE * 2];     //make one "double" array, with this we can use DMA in circular mode
-                                        //and it is not required to again set transmission when whole buffer has been sent
-    int16_t *table_ptr;                 //pointer to currently edited "virtual" buffer
-    struct sin_gen_voices *voices_tab;  //
-
-    bool buff_ready;//todo
-    uint32_t max_len;
+    /* make one "double" array, with this we can use DMA in circular mode, and it is not required to again set transmission when whole buffer has been sent */
+    int16_t table[PACKED_SIZE * 2];
+    /* pointer to currently edited "virtual" buffer */
+    int16_t *table_ptr;
+    /* pointer to array with structures specifying actual playing waves */
+    struct sin_gen_voices *voices_tab;
+    /* with this flag we can check whether current "virtual" buffer has been filled */
+    volatile bool buff_ready;
 };
 
-float note_freq[12];
+/*
+ *            /|\
+ *           / | \
+ *          /  |  \
+ *         /   |   \
+ *        /    |    \
+ *       /     |     \________________  Sustain level
+ *      /      |     |                |\
+ *     /       |     |                | \
+ *    /        |     |                |  \
+ * __/         |     |                |   \__
+ *     Attack             Sustain
+ *              Decay                  Release
+ */
+
+struct sin_gen_envelop_generator
+{
+    uint8_t sustain_level;
+    /* time in 1/480000s */
+    uint32_t attack_time;
+    uint32_t decay_time;
+    uint32_t release_time;
+};
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 void sin_gen_process(void);
 void sin_gen_init(void);
 void sin_gen_set_play(bool flag, uint8_t key_number);
-
-bool get_flag(void);
-void set_flag(bool flag);
-
