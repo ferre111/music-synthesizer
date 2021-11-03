@@ -65,6 +65,9 @@ void sin_gen_init(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
+#define SIN_VALUE 32767.0 * (double)arm_sin_f32(6.28f * (float)ctx.voices_tab[i].freq * current_sample / 48000.0)
+//#define SIN_VALUE (double)wavetable[ctx.voices_tab[i].sample_multiple]
+
 void sin_gen_process(void)
 {
     uint32_t current_sample = 0;
@@ -89,7 +92,7 @@ void sin_gen_process(void)
         /* clear table, multiple by two due to uint16_t */
         memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
 
-        utility_TimeMeasurmentsSetHigh();
+        utility_TimeMeasurmentsSetHigh(); //todo delete this
         for (uint8_t i = 0; i < VOICES_COUNT; i++)
         {
             do
@@ -97,7 +100,7 @@ void sin_gen_process(void)
                 switch(ctx.voices_tab[i].voice_status)
                 {
                 case voice_status_Attack:
-                    sin_gen_write_one_sample(current_sample, (int16_t)(attack_coef * (double)ctx.voices_tab[i].attack_counter * (double)wavetable[ctx.voices_tab[i].sample_multiple] / (double)VOICES_COUNT));
+                    sin_gen_write_one_sample(current_sample, (int16_t)(attack_coef * (double)ctx.voices_tab[i].attack_counter * SIN_VALUE / (double)VOICES_COUNT));
 
                     if (ctx.voices_tab[i].attack_counter++ > eg_ctx.attack_time)
                     {
@@ -106,7 +109,7 @@ void sin_gen_process(void)
                     }
                     break;
                 case voice_status_Decay:
-                    sin_gen_write_one_sample(current_sample, (int16_t)((decay_coef * (double)ctx.voices_tab[i].decay_counter + 1.0) * (double)wavetable[ctx.voices_tab[i].sample_multiple] / (double)VOICES_COUNT));
+                    sin_gen_write_one_sample(current_sample, (int16_t)((decay_coef * (double)ctx.voices_tab[i].decay_counter + 1.0) * SIN_VALUE / (double)VOICES_COUNT));
 
                     if (ctx.voices_tab[i].decay_counter++ > eg_ctx.decay_time)
                     {
@@ -115,10 +118,10 @@ void sin_gen_process(void)
                     }
                     break;
                 case voice_status_Sustain:
-                    sin_gen_write_one_sample(current_sample, (int16_t)(sustain_coef * (double)wavetable[ctx.voices_tab[i].sample_multiple] / (double)VOICES_COUNT));
+                    sin_gen_write_one_sample(current_sample, (int16_t)(sustain_coef * SIN_VALUE / (double)VOICES_COUNT));
                     break;
                 case voice_status_Release:
-                    sin_gen_write_one_sample(current_sample, (int16_t)((release_coef * (double)ctx.voices_tab[i].release_counter + (double)eg_ctx.sustain_level / 100.0) * (double)wavetable[ctx.voices_tab[i].sample_multiple] / (double)VOICES_COUNT));
+                    sin_gen_write_one_sample(current_sample, (int16_t)((release_coef * (double)ctx.voices_tab[i].release_counter + (double)eg_ctx.sustain_level / 100.0) * SIN_VALUE / (double)VOICES_COUNT));
 
                     if (ctx.voices_tab[i].release_counter++ > eg_ctx.release_time)
                     {
@@ -143,7 +146,7 @@ void sin_gen_process(void)
         }
 
     }
-    utility_TimeMeasurmentsSetLow();
+    utility_TimeMeasurmentsSetLow(); //todo delete this
 
     ctx.dma_flag = false;
     ctx.buff_ready = true;
