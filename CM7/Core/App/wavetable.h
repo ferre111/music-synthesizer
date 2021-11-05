@@ -9,7 +9,6 @@
 
 #include "main.h"
 
-#define BASIC_FREQ 1
 #define SAMPLE_COUNT 48000
 
 const int16_t wavetable_sin[SAMPLE_COUNT];

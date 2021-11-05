@@ -153,8 +153,8 @@ Error_Handler();
   utility_ErrLedOn();
   while (1)
   {
-      static uint32_t timestamp;
-      static uint8_t flag;
+//      static uint32_t timestamp;
+//      static uint8_t flag;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -176,7 +176,15 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM_D1
-
+  
+  .wave :
+  {
+    . = ALIGN(4);
+    *(.wave)
+    *(.wave*)
+    . = ALIGN(4);
+  } >DTCMRAM
+  
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {

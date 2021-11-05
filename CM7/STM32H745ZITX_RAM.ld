@@ -45,7 +45,7 @@ _Min_Stack_Size = 0x400 ; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH =  512K
+  RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K
   FLASH   (rx)   : ORIGIN = 0x08000000, LENGTH = 1024K    /* Memory is divided. Actual start is 0x8000000 and actual length is 2048K */
   DTCMRAM (xrw)  : ORIGIN = 0x20000000, LENGTH = 128K
   RAM_D2 (xrw)   : ORIGIN = 0x30000000, LENGTH = 288K
@@ -166,7 +166,9 @@ SECTIONS
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM_D1
-
+  
+    
+  
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack :
   {
@@ -177,6 +179,14 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM_D1
+
+  .wave :
+  {
+    . = ALIGN(4);
+    *(.wave)
+    *(.wave*)
+    . = ALIGN(4);
+  } >DTCMRAM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

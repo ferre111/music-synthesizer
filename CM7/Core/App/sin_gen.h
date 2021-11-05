@@ -14,8 +14,8 @@
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-#define PACKED_SIZE 4800 //size of data (in words) sends by one DMA transfer
-#define VOICES_COUNT 10
+/* size of data (in words) sends by one DMA transfer */
+#define PACKED_SIZE 4800
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -89,11 +89,17 @@ struct sin_gen
 
 struct sin_gen_envelop_generator
 {
+    /* sustain level, 1 - 100%, 0.5 - 50% */
     uint8_t sustain_level;
-    /* time in 1/480000s */
+    /* time as a 1/480000s */
     uint32_t attack_time;
     uint32_t decay_time;
     uint32_t release_time;
+    /* coefficients */
+    double attack_coef;
+    double decay_coef;
+    double sustain_coef;
+    double release_coef;
 };
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -101,3 +107,4 @@ struct sin_gen_envelop_generator
 void sin_gen_process(void);
 void sin_gen_init(void);
 void sin_gen_set_play(bool flag, uint8_t key_number);
+void sin_gen_set_envelop_generator(double sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
