@@ -179,6 +179,14 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >DTCMRAM
+  
+    .sin_gen_ctx :
+  {
+    . = ALIGN(4);
+    *(.sin_gen_ctx)
+    *(.sin_gen_ctx*)
+    . = ALIGN(4);
+  } >RAM_D2
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

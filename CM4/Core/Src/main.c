@@ -118,6 +118,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    HAL_GPIO_TogglePin(DEB_LED_GPIO_Port, DEB_LED_Pin);
+    HAL_Delay(1000);
 //      MX_USB_HOST_Process();
   }
   /* USER CODE END 3 */

@@ -45,12 +45,12 @@ _Min_Stack_Size = 0x4000 ; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH =  512K
-  FLASH  (rx)    : ORIGIN = 0x08000000, LENGTH = 1024K    /* Memory is divided. Actual start is 0x08000000 and actual length is 2048K */
-  DTCMRAM (xrw)  : ORIGIN = 0x20000000, LENGTH = 128K
-  RAM_D2 (xrw)   : ORIGIN = 0x30000000, LENGTH = 288K
-  RAM_D3 (xrw)   : ORIGIN = 0x38000000, LENGTH = 64K
-  ITCMRAM (xrw)  : ORIGIN = 0x00000000, LENGTH = 64K
+  RAM_D1 (xrw)          : ORIGIN = 0x24000000, LENGTH =  512K
+  FLASH  (rx)           : ORIGIN = 0x08000000, LENGTH = 1024K    /* Memory is divided. Actual start is 0x08000000 and actual length is 2048K */
+  DTCMRAM (xrw)         : ORIGIN = 0x20000000, LENGTH = 128K
+  RAM_D2_SRAM_1 (xrw)   : ORIGIN = 0x30000000, LENGTH = 128K
+  RAM_D3 (xrw)          : ORIGIN = 0x38000000, LENGTH = 64K
+  ITCMRAM (xrw)         : ORIGIN = 0x00000000, LENGTH = 64K
 }
 
 /* Sections */
@@ -176,6 +176,25 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >DTCMRAM
+  
+  .sin_gen_ctx :
+  {
+  
+  *(.sin_gen_ctx)
+  *(.sin_gen_ctx*)
+
+  } >RAM_D2_SRAM_1
+  
+  /*
+      . = ALIGN(8);
+    _ssin_gen_ctx = .;
+    *(.sin_gen_ctx)
+    *(.sin_gen_ctx*)
+    . = ALIGN(8);
+    _esin_gen_ctx = .;
+  */
+  /* Used by the startup to initialize data */
+  _sisin_gen_ctx = LOADADDR(.sin_gen_ctx);
   
   /* Remove information from the compiler libraries */
   /DISCARD/ :

@@ -37,8 +37,7 @@ static struct sin_gen_voices voices_tab[VOICES_COUNT] =
         [9] = {.voice_status = voice_status_Off}
 };
 
-static struct sin_gen ctx = {.voices_tab = voices_tab, .dma_flag = true};
-static struct sin_gen *ctx2 = (struct sin_gen *)0x30000000;
+static struct sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true};
 static struct sin_gen_envelop_generator eg_ctx;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -71,9 +70,11 @@ const static float note_freq[12] =
 void sin_gen_init(void)
 {
     ctx.table_ptr = ctx.table;
-    ctx2->voices_tab = voices_tab;
-    ctx2->dma_flag = true;
-
+    //todo
+    ctx.voices_tab = voices_tab;
+    ctx.dma_flag = true;
+    ctx.buff_ready = false;
+    //todo
     sin_gen_set_envelop_generator(DEF_SUSTAIN_LEVEL, DEF_ATTACK_TIME, DEF_DECAY_TIME, DEF_RELEASE_TIME);
     HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table_ptr, PACKED_SIZE * 2);
 }
@@ -148,6 +149,8 @@ void sin_gen_process(void)
             current_sample = 0;
         }
     }
+    /* Clean DCache after filling whole table */
+    SCB_CleanDCache_by_Addr(ctx.table_ptr, PACKED_SIZE * 2);
     utility_TimeMeasurmentsSetLow();
 
     ctx.dma_flag = false;
@@ -223,6 +226,11 @@ inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t val
 {
     ctx.table_ptr[current_sample] += value;
     ctx.table_ptr[current_sample + 1] += value;
+
+    if (ctx.table_ptr[current_sample + 1] != ctx.table_ptr[current_sample])
+    {
+        __NOP();
+    }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

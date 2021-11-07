@@ -46,6 +46,9 @@ defined in linker script */
 .word  _ebss
 /* stack used for SystemInit_ExtMemCtl; always internal RAM used */
 
+.word  _ssin_gen_ctx
+.word  _esin_gen_ctx
+.word  _sisin_gen_ctx
 /**
  * @brief  This is the code that gets called when the processor first
  *          starts execution following a reset event. Only the absolutely
@@ -63,6 +66,12 @@ Reset_Handler:
 
 /* Call the clock system initialization function.*/
   bl  SystemInit
+
+/*  ldr r0, =_ssin_gen_ctx
+  ldr r1, =_esin_gen_ctx
+  ldr r2, =_sisin_gen_ctx
+  movs r3, #0
+  b*/
 
 /* Copy the data segment initializers from flash to SRAM */
   ldr r0, =_sdata
