@@ -222,8 +222,21 @@ void SystemInit (void)
     *((__IO uint32_t*)0x51008108) = 0x000000001U;
   }
 
-  /* CM7 initialize SRAM1 */
-  RCC_C2->AHB2ENR |= RCC_AHB2ENR_D2SRAM1EN;
+  /* Wait until CPU2 boots and enters in stop mode */
+  while(__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) != RESET);
+
+  /* Allocate the SRAM1 */
+  RCC->AHB2ENR |= RCC_AHB2ENR_D2SRAM1EN;
+  /* Read back the register to make sure that the previous write operation is not pending into a write buffer */
+  while ((RCC->AHB2ENR & RCC_AHB2ENR_D2SRAM1EN) == RESET);
+  /* Read DxCKRDY until it is set to ‘1’. */
+  while (__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) == RESET);
+  /* Write SBF_Dx to zero and read-back the value, in order to check if the domain
+  where the peripheral is located is still in DStandb */
+  PWR->CPU2CR &= ~(PWR_CPU2CR_SBF_D2);
+  /* Repeat this operation until SBF_Dx is equal to ’0’, then continue the other steps. */
+  while ((PWR->CPU2CR & PWR_CPU2CR_SBF_D2) != RESET);
+
 #endif /* CORE_CM7*/
 
 #ifdef CORE_CM4
