@@ -70,11 +70,7 @@ const static float note_freq[12] =
 void sin_gen_init(void)
 {
     ctx.table_ptr = ctx.table;
-    //todo
-    ctx.voices_tab = voices_tab;
-    ctx.dma_flag = true;
-    ctx.buff_ready = false;
-    //todo
+
     sin_gen_set_envelop_generator(DEF_SUSTAIN_LEVEL, DEF_ATTACK_TIME, DEF_DECAY_TIME, DEF_RELEASE_TIME);
     HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table_ptr, PACKED_SIZE * 2);
 }
@@ -150,7 +146,7 @@ void sin_gen_process(void)
         }
     }
     /* Clean DCache after filling whole table */
-    SCB_CleanDCache_by_Addr(ctx.table_ptr, PACKED_SIZE * 2);
+    SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
     utility_TimeMeasurmentsSetLow();
 
     ctx.dma_flag = false;
@@ -159,7 +155,7 @@ void sin_gen_process(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_set_envelop_generator(double sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time)
+void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time)
 {
     eg_ctx.sustain_level = sustain_level;
     eg_ctx.attack_time = attack_time;

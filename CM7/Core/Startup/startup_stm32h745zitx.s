@@ -67,12 +67,6 @@ Reset_Handler:
 /* Call the clock system initialization function.*/
   bl  SystemInit
 
-/*  ldr r0, =_ssin_gen_ctx
-  ldr r1, =_esin_gen_ctx
-  ldr r2, =_sisin_gen_ctx
-  movs r3, #0
-  b*/
-
 /* Copy the data segment initializers from flash to SRAM */
   ldr r0, =_sdata
   ldr r1, =_edata
@@ -89,10 +83,32 @@ LoopCopyDataInit:
   adds r4, r0, r3
   cmp r4, r1
   bcc CopyDataInit
-/* Zero fill the bss segment. */
+
+  ldr r0, =_ssin_gen_ctx
+  ldr r1, =_esin_gen_ctx
+  ldr r2, =_sisin_gen_ctx
+  movs r3, #0
+  b LoopCopySinGenInit
+
+CopySinGenInit:
+  ldr r4, [r2, r3]
+  str r4, [r0, r3]
+  adds r3, r3, #4
+
+LoopCopySinGenInit:
+  adds r4, r0, r3
+  cmp r4, r1
+  bcc CopySinGenInit
+  /* Zero fill the bss segment. */
+
   ldr r2, =_sbss
   ldr r4, =_ebss
   movs r3, #0
+  /*
+  ldr r2, =_ssin_gen_ctx
+  ldr r4, =_esin_gen_ctx
+  movs r3, #55
+  */
   b LoopFillZerobss
 
 FillZerobss:

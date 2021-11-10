@@ -222,6 +222,8 @@ void SystemInit (void)
     *((__IO uint32_t*)0x51008108) = 0x000000001U;
   }
 
+  /* CM7 initialize SRAM1 */
+  RCC_C2->AHB2ENR |= RCC_AHB2ENR_D2SRAM1EN;
 #endif /* CORE_CM7*/
 
 #ifdef CORE_CM4

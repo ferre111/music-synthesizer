@@ -177,13 +177,20 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
   
+    /* Used by the startup to initialize data */
+  _sisin_gen_ctx = LOADADDR(.sin_gen_ctx);
+  
   .sin_gen_ctx :
   {
-  
+  . = ALIGN(4);
+  _ssin_gen_ctx = .;
   *(.sin_gen_ctx)
   *(.sin_gen_ctx*)
+  
+  . = ALIGN(4);
+  _esin_gen_ctx = .;
 
-  } >RAM_D2_SRAM_1
+  } >RAM_D2_SRAM_1 AT> FLASH
   
   /*
       . = ALIGN(8);
@@ -193,8 +200,6 @@ SECTIONS
     . = ALIGN(8);
     _esin_gen_ctx = .;
   */
-  /* Used by the startup to initialize data */
-  _sisin_gen_ctx = LOADADDR(.sin_gen_ctx);
   
   /* Remove information from the compiler libraries */
   /DISCARD/ :
