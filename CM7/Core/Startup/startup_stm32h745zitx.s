@@ -44,11 +44,19 @@ defined in linker script */
 .word  _sbss
 /* end address for the .bss section. defined in linker script */
 .word  _ebss
+/* start address for the initialization values of the .sin_gen_ctx section.
+defined in linker script */
+.word  _sisin_gen_ctx
+/* start address for the .sin_gen_ctx section. defined in linker script */
+.word  _ssin_gen_ctx
+/* end address for the .sin_gen_ctx section. defined in linker script */
+.word  _esin_gen_ctx
+/* start address for the .common_buffers section. defined in linker script */
+.word _scommon_buffers
+/* end address for the .common_buffers section. defined in linker script */
+.word _ecommon_buffers
 /* stack used for SystemInit_ExtMemCtl; always internal RAM used */
 
-.word  _ssin_gen_ctx
-.word  _esin_gen_ctx
-.word  _sisin_gen_ctx
 /**
  * @brief  This is the code that gets called when the processor first
  *          starts execution following a reset event. Only the absolutely
@@ -104,11 +112,6 @@ LoopCopySinGenInit:
   ldr r2, =_sbss
   ldr r4, =_ebss
   movs r3, #0
-  /*
-  ldr r2, =_ssin_gen_ctx
-  ldr r4, =_esin_gen_ctx
-  movs r3, #55
-  */
   b LoopFillZerobss
 
 FillZerobss:
@@ -118,6 +121,19 @@ FillZerobss:
 LoopFillZerobss:
   cmp r2, r4
   bcc FillZerobss
+
+  ldr r2, =_scommon_buffers
+  ldr r4, =_ecommon_buffers
+  movs r3, #0
+  b LoopFillZeroCommonBuffers
+
+FillZeroCommonBuffers:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroCommonBuffers:
+  cmp r2, r4
+  bcc FillZeroCommonBuffers
 
 /* Call static constructors */
     bl __libc_init_array

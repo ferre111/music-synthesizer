@@ -5,7 +5,8 @@
  *      Author: Karol Witusik
  */
 
-#pragma once
+#ifndef __SIN_GEN_H
+#define __SIN_GEN_H
 
 #include "wavetable.h"
 #include "main.h"
@@ -46,7 +47,7 @@ typedef enum voice_status_T
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-struct sin_gen_voices
+typedef struct sin_gen_voices_T
 {
     voice_status voice_status;
     uint32_t freq;
@@ -56,9 +57,9 @@ struct sin_gen_voices
     uint32_t attack_counter;
     uint32_t decay_counter;
     uint32_t release_counter;
-};
+} sin_gen_voices;
 
-struct sin_gen
+typedef struct sin_gen_T
 {
     /* if this flag is set sin_gen_process should fill buffer */
     volatile bool dma_flag;
@@ -67,10 +68,10 @@ struct sin_gen
     /* pointer to currently edited "virtual" buffer */
     int16_t *table_ptr;
     /* pointer to array with structures specifying actual playing waves */
-    struct sin_gen_voices *voices_tab;
+    sin_gen_voices *voices_tab;
     /* with this flag we can check whether current "virtual" buffer has been filled */
     volatile bool buff_ready;
-};
+} sin_gen;
 
 /*
  *            /|\
@@ -87,7 +88,7 @@ struct sin_gen
  *              Decay                  Release
  */
 
-struct sin_gen_envelop_generator
+typedef struct sin_gen_envelop_generator_T
 {
     /* sustain level, 1 - 100%, 0.5 - 50% */
     uint8_t sustain_level;
@@ -100,7 +101,7 @@ struct sin_gen_envelop_generator
     double decay_coef;
     double sustain_coef;
     double release_coef;
-};
+} sin_gen_envelop_generator;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -108,3 +109,5 @@ void sin_gen_process(void);
 void sin_gen_init(void);
 void sin_gen_set_play(bool flag, uint8_t key_number);
 void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
+
+#endif

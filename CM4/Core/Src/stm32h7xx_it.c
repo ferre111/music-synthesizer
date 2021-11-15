@@ -213,6 +213,19 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
+/**
+  * @brief This function handles CM7 send event interrupt for CM4.
+  */
+void CM7_SEV_IRQHandler(void)
+{
+  /* USER CODE BEGIN CM7_SEV_IRQn 0 */
+
+  /* USER CODE END CM7_SEV_IRQn 0 */
+  /* USER CODE BEGIN CM7_SEV_IRQn 1 */
+
+  /* USER CODE END CM7_SEV_IRQn 1 */
+}
+
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */

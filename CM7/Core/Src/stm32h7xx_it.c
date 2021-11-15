@@ -231,6 +231,19 @@ void DMA2_Stream0_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles CM4 send event interrupt for CM7.
+  */
+void CM4_SEV_IRQHandler(void)
+{
+  /* USER CODE BEGIN CM4_SEV_IRQn 0 */
+
+  /* USER CODE END CM4_SEV_IRQn 0 */
+  /* USER CODE BEGIN CM4_SEV_IRQn 1 */
+
+  /* USER CODE END CM4_SEV_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB On The Go FS End Point 1 Out global interrupt.
   */
 void OTG_FS_EP1_OUT_IRQHandler(void)
@@ -282,7 +295,7 @@ void TIM17_IRQHandler(void)
   /* USER CODE END TIM17_IRQn 0 */
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
-  sin_gen_process();
+//  sin_gen_process();
   /* USER CODE END TIM17_IRQn 1 */
 }
 

@@ -33,6 +33,7 @@
 #include "usbh_MIDI.h"
 #include "midi.h"
 #include "utility.h"
+#include "synthcom.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,12 +92,6 @@ int main(void)
   int32_t timeout;
 /* USER CODE END Boot_Mode_Sequence_0 */
 
-  /* Enable I-Cache---------------------------------------------------------*/
-  SCB_EnableICache();
-
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
-
 /* USER CODE BEGIN Boot_Mode_Sequence_1 */
 
 /* USER CODE END Boot_Mode_Sequence_1 */
@@ -142,15 +137,18 @@ Error_Handler();
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
   sin_gen_init();
+  SynthCom_Init();
   HAL_TIM_Base_Start_IT(&htim17);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  sin_gen_set_play(true, 50);
-//  sin_gen_set_play(true, 100);
-  memcpy(buf, wavetable, 48000);
-  utility_ErrLedOn();
+  SynthComPacket_Test test;
+  test.angle = 21.37;
+  test.data_x = 14;
+  test.data_y = 88;
+  SynthCom_transmit(SYNTHCOM_TEST, &test);
+
   while (1)
   {
 //      static uint32_t timestamp;
@@ -167,6 +165,7 @@ Error_Handler();
 //      set_flag(false);
       MIDI_App_Process();
       MX_USB_HOST_Process();
+      SynthCom_receive();
 //      if (HAL_GetTick() - timestamp > 1000)
 //      {
 //          if (flag)

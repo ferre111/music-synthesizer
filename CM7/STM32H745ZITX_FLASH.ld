@@ -192,14 +192,17 @@ SECTIONS
 
   } >RAM_D2_SRAM_1 AT> FLASH
   
-  /*
-      . = ALIGN(8);
-    _ssin_gen_ctx = .;
-    *(.sin_gen_ctx)
-    *(.sin_gen_ctx*)
-    . = ALIGN(8);
-    _esin_gen_ctx = .;
-  */
+  /* Uninitialized common buffers (shared between two cores) */
+  . = ALIGN(4);
+  .common_buffers :
+  {
+  _scommon_buffers = .;
+  *(.common_buffers)
+  *(.common_buffers*)
+  
+  . = ALIGN(4);
+  _ecommon_buffers = .;
+  } >RAM_D3
   
   /* Remove information from the compiler libraries */
   /DISCARD/ :

@@ -46,6 +46,7 @@ MEMORY
 {
 FLASH (rx)                 : ORIGIN = 0x08100000, LENGTH = 1024K
 RAM_SRAM2_SRAM3 (xrw)      : ORIGIN = 0x10020000, LENGTH = 160K
+RAM_D3 (xrw)               : ORIGIN = 0x38000000, LENGTH = 64K
 }
 
 /* Define output sections */
@@ -158,7 +159,17 @@ SECTIONS
     . = ALIGN(8);
   } >RAM_SRAM2_SRAM3
 
-
+  /* Uninitialized common buffers (shared between two cores) */
+  . = ALIGN(4);
+  .common_buffers :
+  {
+  _scommon_buffers = .;
+  *(.common_buffers)
+  *(.common_buffers*)
+  
+  . = ALIGN(4);
+  _ecommon_buffers = .;
+  } >RAM_D3
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

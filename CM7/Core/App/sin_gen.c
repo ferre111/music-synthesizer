@@ -23,7 +23,7 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* array with "voices", one voice - one wave (e.g. sine) on the output */
-static struct sin_gen_voices voices_tab[VOICES_COUNT] =
+static sin_gen_voices voices_tab[VOICES_COUNT] =
 {
         [0] = {.voice_status = voice_status_Off},
         [1] = {.voice_status = voice_status_Off},
@@ -37,8 +37,8 @@ static struct sin_gen_voices voices_tab[VOICES_COUNT] =
         [9] = {.voice_status = voice_status_Off}
 };
 
-static struct sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true};
-static struct sin_gen_envelop_generator eg_ctx;
+static sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true};
+static sin_gen_envelop_generator eg_ctx;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 

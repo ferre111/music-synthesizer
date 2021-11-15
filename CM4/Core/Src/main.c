@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include "synthcom.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,12 +108,16 @@ int main(void)
   MX_DMA_Init();
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
+  SynthCom_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  printf("Hello World\n");
+  SynthComPacket_Test test;
+  test.angle = 37.21;
+  test.data_x = 66;
+  test.data_y = 88;
+  SynthCom_transmit(SYNTHCOM_TEST, &test);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -120,6 +125,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(DEB_LED_GPIO_Port, DEB_LED_Pin);
     HAL_Delay(1000);
+    SynthCom_receive();
 //      MX_USB_HOST_Process();
   }
   /* USER CODE END 3 */

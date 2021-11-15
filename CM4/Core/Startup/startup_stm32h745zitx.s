@@ -44,6 +44,10 @@ defined in linker script */
 .word  _sbss
 /* end address for the .bss section. defined in linker script */
 .word  _ebss
+/* start address for the .common_buffers section. defined in linker script */
+.word _scommon_buffers
+/* end address for the .common_buffers section. defined in linker script */
+.word _ecommon_buffers
 /* stack used for SystemInit_ExtMemCtl; always internal RAM used */
 
 /**
@@ -93,6 +97,19 @@ FillZerobss:
 LoopFillZerobss:
   cmp r2, r4
   bcc FillZerobss
+
+  ldr r2, =_scommon_buffers
+  ldr r4, =_ecommon_buffers
+  movs r3, #0
+  b LoopFillZeroCommonBuffers
+
+FillZeroCommonBuffers:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroCommonBuffers:
+  cmp r2, r4
+  bcc FillZeroCommonBuffers
 
 /* Call static constructors */
     bl __libc_init_array

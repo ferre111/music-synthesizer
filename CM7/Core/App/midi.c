@@ -52,6 +52,7 @@ midi_app_states MIDI_App_GetState(void)
 void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
     USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start a new reception
+    //todo moze tu wylaczyc przerwania na czas wykonywania poniższej funckji bądź można pomyśleć nad drugim bufforem MIDI_RX_Buffer
     MIDI_App_ReceiveFrame();
 }
 
