@@ -1,6 +1,7 @@
 #include "main.h"
 #include "synthcom.h"
 #include "ring_buffer.h"
+#include <stdlib.h>
 
 SynthComPacket_Test test; //todo
 
@@ -78,6 +79,7 @@ void SynthCom_transmit(SynthCom_PacketType packet_type, void* data)
 void SynthCom_receive(void)
 {
     SynthCom_PacketType packet_type = SynthCom_PacketType_end;
+    bool status = false;
 
     if (0U != *ctx.message_counter_own)
     {

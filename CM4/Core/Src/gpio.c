@@ -43,14 +43,14 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DEB_LED_GPIO_Port, DEB_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ERR_LED_CM4_GPIO_Port, ERR_LED_CM4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = DEB_LED_Pin;
+  GPIO_InitStruct.Pin = ERR_LED_CM4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(DEB_LED_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(ERR_LED_CM4_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = USB_VBUS_OC_Pin;

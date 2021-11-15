@@ -58,12 +58,13 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DEB_LED_Pin GPIO_PIN_3
-#define DEB_LED_GPIO_Port GPIOE
+#define ERR_LED_CM4_Pin GPIO_PIN_3
+#define ERR_LED_CM4_GPIO_Port GPIOE
 #define USB_VBUS_OC_Pin GPIO_PIN_10
 #define USB_VBUS_OC_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
-
+#define TIME_MEASURMENT_Pin GPIO_PIN_9
+#define TIME_MEASURMENT_GPIO_Port GPIOB
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -222,11 +222,6 @@ inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t val
 {
     ctx.table_ptr[current_sample] += value;
     ctx.table_ptr[current_sample + 1] += value;
-
-    if (ctx.table_ptr[current_sample + 1] != ctx.table_ptr[current_sample])
-    {
-        __NOP();
-    }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -237,12 +232,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
     {
         if (false == ctx.buff_ready)
         {
-            utility_ErrLedOn();
+//            utility_ErrLedOn();
         }
-        else
-        {
-            utility_ErrLedOff();
-        }
+
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;
@@ -255,12 +247,9 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
     {
         if (false == ctx.buff_ready)
         {
-            utility_ErrLedOn();
+//            utility_ErrLedOn();
         }
-        else
-        {
-            utility_ErrLedOff();
-        }
+
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;

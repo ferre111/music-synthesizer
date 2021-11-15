@@ -11,8 +11,8 @@
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-#define ERR_LED_GPIO_Port   ERR_LED_CM7_GPIO_Port
-#define ERR_LED_Pin         ERR_LED_CM7_Pin
+#define ERR_LED_GPIO_Port   ERR_LED_CM4_GPIO_Port
+#define ERR_LED_Pin         ERR_LED_CM4_Pin
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -20,7 +20,7 @@ void utility_ErrLedOn(void)
 {
     HAL_GPIO_WritePin(ERR_LED_GPIO_Port, ERR_LED_Pin, 1U);
     /* Turn off error indicator in tim16 handler after 2s */
-    __HAL_TIM_ENABLE(&htim16);
+    __HAL_TIM_ENABLE(&htim14);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

@@ -135,9 +135,11 @@ Error_Handler();
   MX_USB_HOST_Init();
   MX_USART2_UART_Init();
   MX_TIM17_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
   sin_gen_init();
   SynthCom_Init();
+  HAL_TIM_Base_Start_IT(&htim16);
   HAL_TIM_Base_Start_IT(&htim17);
   /* USER CODE END 2 */
 

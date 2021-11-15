@@ -20,12 +20,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "synthcom.h"
+#include "utility.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,8 +109,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_DMA_Init();
   MX_GPIO_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   SynthCom_Init();
+  HAL_TIM_Base_Start_IT(&htim14);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -118,13 +122,18 @@ int main(void)
   test.data_x = 66;
   test.data_y = 88;
   SynthCom_transmit(SYNTHCOM_TEST, &test);
+
+  utility_ErrLedOn();
+  while(1)
+  {
+      HAL_Delay(5000U);
+      utility_ErrLedOn();
+  }
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(DEB_LED_GPIO_Port, DEB_LED_Pin);
-    HAL_Delay(1000);
     SynthCom_receive();
 //      MX_USB_HOST_Process();
   }
