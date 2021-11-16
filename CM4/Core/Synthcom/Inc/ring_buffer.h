@@ -17,7 +17,7 @@
 /** @brief Structure describing the ring buffer. */
 typedef struct ring_buffer_T
 {
-    uint8_t *data_buffer;
+    volatile uint8_t *data_buffer;
     size_t data_buffer_size;
     size_t tail;
     size_t head;
@@ -34,7 +34,7 @@ typedef struct ring_buffer_T
  * @param data_buffer_size size in bytes of the dataBuffer
  * @return true if all arguments are valid and the ring buffer is initialized successfully, false otherwise
 */
-bool RingBuffer_init(ring_buffer *ring_buffer, uint8_t *data_buffer, size_t data_buffer_size);
+bool RingBuffer_init(volatile ring_buffer *ring_buffer, volatile uint8_t *data_buffer, size_t data_buffer_size);
 
 //--------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ bool RingBuffer_init(ring_buffer *ring_buffer, uint8_t *data_buffer, size_t data
  * @param *ring_buffer pointer to a \ref ring_buffer structure
  * @return true if the ring buffer is cleared successfully, false otherwise
 */
-bool RingBuffer_clear(ring_buffer *ring_buffer);
+bool RingBuffer_clear(volatile ring_buffer *ring_buffer);
 
 //--------------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ bool RingBuffer_clear(ring_buffer *ring_buffer);
  * @param *ring_buffer pointer to a \ref ring_buffer structure
  * @return true if the ring buffer holds no data, false otherwise
 */
-bool RingBuffer_is_empty(const ring_buffer *ring_buffer);
+bool RingBuffer_is_empty(volatile const ring_buffer *ring_buffer);
 
 //--------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ bool RingBuffer_is_empty(const ring_buffer *ring_buffer);
  * @param *ring_buffer pointer to a \ref ring_buffer structure
  * @return length (in bytes) of the data stored in the ring buffer
 */
-size_t RingBuffer_get_len(const ring_buffer *ring_buffer);
+size_t RingBuffer_get_len(volatile const ring_buffer *ring_buffer);
 
 //--------------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ size_t RingBuffer_get_len(const ring_buffer *ring_buffer);
  * @param *ring_buffer pointer to a \ref ring_buffer structure
  * @return capacity (in bytes) of the ring buffer (how much values can it store)
 */
-size_t RingBuffer_get_capacity(const ring_buffer *ring_buffer);
+size_t RingBuffer_get_capacity(volatile const ring_buffer *ring_buffer);
 
 //--------------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ size_t RingBuffer_get_capacity(const ring_buffer *ring_buffer);
  * @param val value that will be append
  * @return true if the value was added successfully, false otherwise
 */
-bool RingBuffer_put_val(ring_buffer *ring_buffer, uint8_t val);
+bool RingBuffer_put_val(volatile ring_buffer *ring_buffer, uint8_t val);
 
 //--------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ bool RingBuffer_put_val(ring_buffer *ring_buffer, uint8_t val);
  * @param *val pointer to variable where value will be save
  * @return true if the value was pulled out successfully, false otherwise
 */
-bool RingBuffer_get_val(ring_buffer *ring_buffer, uint8_t *val);
+bool RingBuffer_get_val(volatile ring_buffer *ring_buffer, uint8_t *val);
 
 
 #endif //_RING_BUFFER_

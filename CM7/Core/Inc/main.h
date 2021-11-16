@@ -60,8 +60,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define ERR_LED_CM7_Pin GPIO_PIN_2
 #define ERR_LED_CM7_GPIO_Port GPIOE
-#define USB_VBUS_EN_Pin GPIO_PIN_8
-#define USB_VBUS_EN_GPIO_Port GPIOG
 #define TIME_MEASURMENT_Pin GPIO_PIN_9
 #define TIME_MEASURMENT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */

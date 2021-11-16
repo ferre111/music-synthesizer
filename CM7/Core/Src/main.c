@@ -23,15 +23,12 @@
 #include "i2s.h"
 #include "tim.h"
 #include "usart.h"
-#include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "sin_gen.h"
-#include "usbh_MIDI.h"
-#include "midi.h"
 #include "utility.h"
 #include "synthcom.h"
 /* USER CODE END Includes */
@@ -132,7 +129,6 @@ Error_Handler();
   MX_GPIO_Init();
   MX_I2S1_Init();
   MX_DMA_Init();
-  MX_USB_HOST_Init();
   MX_USART2_UART_Init();
   MX_TIM17_Init();
   MX_TIM16_Init();
@@ -140,48 +136,17 @@ Error_Handler();
   sin_gen_init();
   SynthCom_Init();
   HAL_TIM_Base_Start_IT(&htim16);
-  HAL_TIM_Base_Start_IT(&htim17);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SynthComPacket_Test test;
-  test.angle = 21.37;
-  test.data_x = 14;
-  test.data_y = 88;
-  SynthCom_transmit(SYNTHCOM_TEST, &test);
-
   while (1)
   {
-//      static uint32_t timestamp;
-//      static uint8_t flag;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//      while(!get_flag())
-//      {
-//
-//      }
-//      HAL_I2S_Transmit_DMA(&hi2s1, buf, 48000);
-//      set_flag(false);
-//      set_flag(false);
-      MIDI_App_Process();
-      MX_USB_HOST_Process();
-      SynthCom_receive();
-//      if (HAL_GetTick() - timestamp > 1000)
-//      {
-//          if (flag)
-//          {
-//              sin_gen_set_play(true, 50);
-//              flag = 0;
-//          }
-//          else
-//          {
-//              sin_gen_set_play(false, 50);
-//              flag = 255;
-//          }
-//          timestamp = HAL_GetTick();
-//      }
+      sin_gen_process();
+      SynthCom_process();
   }
   /* USER CODE END 3 */
 }

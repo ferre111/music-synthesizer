@@ -83,6 +83,8 @@ void sin_gen_process(void)
 
     if (ctx.dma_flag)
     {
+        utility_TimeMeasurmentsSetHigh();
+
         /* Choose buffer that is not currently send */
         if (ctx.table_ptr == ctx.table)
         {
@@ -96,7 +98,6 @@ void sin_gen_process(void)
         /* clear table, multiple by two due to uint16_t */
         memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
 
-        utility_TimeMeasurmentsSetHigh();
         for (uint8_t i = 0; i < VOICES_COUNT; i++)
         {
             do
@@ -144,13 +145,12 @@ void sin_gen_process(void)
             } while (0 != (PACKED_SIZE - current_sample));
             current_sample = 0;
         }
+        /* Clean DCache after filling whole table */
+//        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
+        ctx.dma_flag = false;
+        ctx.buff_ready = true;
+        utility_TimeMeasurmentsSetLow();
     }
-    /* Clean DCache after filling whole table */
-    SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
-    utility_TimeMeasurmentsSetLow();
-
-    ctx.dma_flag = false;
-    ctx.buff_ready = true;
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -232,7 +232,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
     {
         if (false == ctx.buff_ready)
         {
-//            utility_ErrLedOn();
+            utility_ErrLedOn();
         }
 
         /* we need to change and fill buffer twice in one DMA transmission */
@@ -247,7 +247,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
     {
         if (false == ctx.buff_ready)
         {
-//            utility_ErrLedOn();
+            utility_ErrLedOn();
         }
 
         /* we need to change and fill buffer twice in one DMA transmission */

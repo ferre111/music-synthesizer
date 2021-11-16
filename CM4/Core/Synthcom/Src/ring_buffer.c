@@ -12,7 +12,7 @@
 
 //--------------------------------------------------------------------------------
 
-bool RingBuffer_init(ring_buffer *ring_buffer, uint8_t *data_buffer, size_t data_buffer_size)
+bool RingBuffer_init(volatile ring_buffer *ring_buffer, volatile uint8_t *data_buffer, size_t data_buffer_size)
 {
     assert(ring_buffer);
     assert(data_buffer);
@@ -33,7 +33,7 @@ bool RingBuffer_init(ring_buffer *ring_buffer, uint8_t *data_buffer, size_t data
 
 //--------------------------------------------------------------------------------
 
-bool RingBuffer_clear(ring_buffer *ring_buffer)
+bool RingBuffer_clear(volatile ring_buffer *ring_buffer)
 {
     assert(ring_buffer);
 
@@ -54,7 +54,7 @@ bool RingBuffer_clear(ring_buffer *ring_buffer)
 
 //--------------------------------------------------------------------------------
 
-bool RingBuffer_is_empty(const ring_buffer *ring_buffer)
+bool RingBuffer_is_empty(volatile const ring_buffer *ring_buffer)
 {
     assert(ring_buffer);
 
@@ -68,7 +68,7 @@ bool RingBuffer_is_empty(const ring_buffer *ring_buffer)
 
 //--------------------------------------------------------------------------------
 
-size_t RingBuffer_get_len(const ring_buffer *ring_buffer)
+size_t RingBuffer_get_len(volatile const ring_buffer *ring_buffer)
 {
     assert(ring_buffer);
 
@@ -82,7 +82,7 @@ size_t RingBuffer_get_len(const ring_buffer *ring_buffer)
 
 //--------------------------------------------------------------------------------
 
-size_t RingBuffer_get_capacity(const ring_buffer *ring_buffer)
+size_t RingBuffer_get_capacity(volatile const ring_buffer *ring_buffer)
 {
     assert(ring_buffer);
 
@@ -95,7 +95,7 @@ size_t RingBuffer_get_capacity(const ring_buffer *ring_buffer)
 
 //--------------------------------------------------------------------------------
 
-bool RingBuffer_put_val(ring_buffer *ring_buffer, uint8_t val)
+bool RingBuffer_put_val(volatile ring_buffer *ring_buffer, uint8_t val)
 {
     assert(ring_buffer);
 
@@ -114,7 +114,7 @@ bool RingBuffer_put_val(ring_buffer *ring_buffer, uint8_t val)
 
 //--------------------------------------------------------------------------------
 
-bool RingBuffer_get_val(ring_buffer *ring_buffer, uint8_t *val)
+bool RingBuffer_get_val(volatile ring_buffer *ring_buffer, uint8_t *val)
 {
     assert(ring_buffer);
     assert(val);

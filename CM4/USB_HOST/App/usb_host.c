@@ -26,7 +26,7 @@
 #include "usbh_audio.h"
 
 /* USER CODE BEGIN Includes */
-#include "usbh_MIDI.h"
+#include "usbh_midi.h"
 #include "midi.h"
 
 /* USER CODE END Includes */
@@ -79,7 +79,7 @@ void MX_USB_HOST_Init(void)
   {
     Error_Handler();
   }
-  if (USBH_RegisterClass(&hUsbHostFS, USBH_AUDIO_CLASS) != USBH_OK)
+  if (USBH_RegisterClass(&hUsbHostFS, USBH_MIDI_CLASS) != USBH_OK)
   {
     Error_Handler();
   }

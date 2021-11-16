@@ -21,6 +21,7 @@
 #include "main.h"
 #include "dma.h"
 #include "tim.h"
+#include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -28,6 +29,7 @@
 #include "stdio.h"
 #include "synthcom.h"
 #include "utility.h"
+#include "midi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,6 +112,7 @@ int main(void)
   MX_DMA_Init();
   MX_GPIO_Init();
   MX_TIM14_Init();
+  MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
   SynthCom_Init();
   HAL_TIM_Base_Start_IT(&htim14);
@@ -117,25 +120,15 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SynthComPacket_Test test;
-  test.angle = 37.21;
-  test.data_x = 66;
-  test.data_y = 88;
-  SynthCom_transmit(SYNTHCOM_TEST, &test);
 
-  utility_ErrLedOn();
-  while(1)
-  {
-      HAL_Delay(5000U);
-      utility_ErrLedOn();
-  }
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    SynthCom_receive();
-//      MX_USB_HOST_Process();
+    MIDI_App_Process();
+    MX_USB_HOST_Process();
+    SynthCom_process();
   }
   /* USER CODE END 3 */
 }
