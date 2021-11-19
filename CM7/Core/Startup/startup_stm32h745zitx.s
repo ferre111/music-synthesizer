@@ -52,10 +52,30 @@ defined in linker script */
 /* end address for the .sin_gen_ctx section. defined in linker script */
 .word  _esin_gen_ctx
 /* start address for the .common_buffers section. defined in linker script */
-.word _scommon_buffers
-/* end address for the .common_buffers section. defined in linker script */
-.word _ecommon_buffers
-/* stack used for SystemInit_ExtMemCtl; always internal RAM used */
+/* start address for the .message_counter_CM7_to_CM4 section. defined in linker script */
+.word _smessage_counter_CM7_to_CM4
+/* end address for the .message_counter_CM7_to_CM4 section. defined in linker script */
+.word _emessage_counter_CM7_to_CM4
+/* start address for the .message_counter_CM4_to_CM7 section. defined in linker script */
+.word _smessage_counter_CM4_to_CM7
+/* end address for the .message_counter_CM4_to_CM7 section. defined in linker script */
+.word _emessage_counter_CM4_to_CM7
+/* start address for the .buffer_CM7_to_CM4 section. defined in linker script */
+.word _sbuffer_CM7_to_CM4
+/* end address for the .buffer_CM7_to_CM4 section. defined in linker script */
+.word _ebuffer_CM7_to_CM4
+/* start address for the .buffer_CM4_to_CM7 section. defined in linker script */
+.word _sbuffer_CM4_to_CM7
+/* end address for the .buffer_CM4_to_CM7 section. defined in linker script */
+.word _ebuffer_CM4_to_CM7
+/* start address for the .ring_buffer_CM7_to_CM4 section. defined in linker script */
+.word _sring_buffer_CM7_to_CM4
+/* end address for the .ring_buffer_CM7_to_CM4 section. defined in linker script */
+.word _ering_buffer_CM7_to_CM4
+/* start address for the .ring_buffer_CM4_to_CM7 section. defined in linker script */
+.word _sring_buffer_CM4_to_CM7
+/* end address for the .ring_buffer_CM4_to_CM7 section. defined in linker script */
+.word _ering_buffer_CM4_to_CM7
 
 /**
  * @brief  This is the code that gets called when the processor first
@@ -122,18 +142,83 @@ LoopFillZerobss:
   cmp r2, r4
   bcc FillZerobss
 
-  ldr r2, =_scommon_buffers
-  ldr r4, =_ecommon_buffers
+  ldr r2, = _smessage_counter_CM7_to_CM4
+  ldr r4, = _emessage_counter_CM7_to_CM4
   movs r3, #0
-  b LoopFillZeroCommonBuffers
+  b LoopFillZeroMessageCounterCM7ToCM4
 
-FillZeroCommonBuffers:
+FillZeroMessageCounterCM7ToCM4:
   str  r3, [r2]
   adds r2, r2, #4
 
-LoopFillZeroCommonBuffers:
+LoopFillZeroMessageCounterCM7ToCM4:
   cmp r2, r4
-  bcc FillZeroCommonBuffers
+  bcc FillZeroMessageCounterCM7ToCM4
+
+  ldr r2, = _smessage_counter_CM4_to_CM7
+  ldr r4, = _emessage_counter_CM4_to_CM7
+  movs r3, #0
+  b LoopFillZeroMessageCounterCM4ToCM7
+
+FillZeroMessageCounterCM4ToCM7:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroMessageCounterCM4ToCM7:
+  cmp r2, r4
+  bcc FillZeroMessageCounterCM4ToCM7
+
+  ldr r2, = _sbuffer_CM7_to_CM4
+  ldr r4, = _ebuffer_CM7_to_CM4
+  movs r3, #0
+  b LoopFillZeroDataBufferCM7ToCM4
+
+FillZeroDataBufferCM7ToCM4:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroDataBufferCM7ToCM4:
+  cmp r2, r4
+  bcc FillZeroDataBufferCM7ToCM4
+
+  ldr r2, = _sbuffer_CM4_to_CM7
+  ldr r4, = _ebuffer_CM4_to_CM7
+  movs r3, #0
+  b LoopFillZeroDataBufferCM4ToCM7
+
+FillZeroDataBufferCM4ToCM7:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroDataBufferCM4ToCM7:
+  cmp r2, r4
+  bcc FillZeroDataBufferCM4ToCM7
+
+  ldr r2, = _sring_buffer_CM7_to_CM4
+  ldr r4, = _ering_buffer_CM7_to_CM4
+  movs r3, #0
+  b LoopFillZeroRingBufferCM7ToCM4
+
+FillZeroRingBufferCM7ToCM4:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroRingBufferCM7ToCM4:
+  cmp r2, r4
+  bcc FillZeroRingBufferCM7ToCM4
+
+  ldr r2, = _sring_buffer_CM4_to_CM7
+  ldr r4, = _ering_buffer_CM4_to_CM7
+  movs r3, #0
+  b LoopFillZeroRingBufferCM4ToCM7
+
+FillZeroRingBufferCM4ToCM7:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroRingBufferCM4ToCM7:
+  cmp r2, r4
+  bcc FillZeroRingBufferCM4ToCM7
 
 /* Call static constructors */
     bl __libc_init_array

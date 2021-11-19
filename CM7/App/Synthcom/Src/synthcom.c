@@ -9,9 +9,6 @@
 /* Size of data buffer use by ring buffer */
 #define DATA_BUFFER_SIZE 1024
 
-#define MESSAGE_COUNTER_CM7_ADD (uint32_t*)0x3800FFF8
-#define MESSAGE_COUNTER_CM4_ADD (uint32_t*)0x3800FFFC
-
 /*------------------------------------------------------------------------------------------------------------------------------*/
 /* structure with pointer necessary during transmitting/receiving data */
 typedef struct synthcom_ctx_T
@@ -30,39 +27,43 @@ typedef struct synthcom_ctx_T
 static uint32_t payload_packets[SynthCom_PacketType_end] = PAYLOAD;
 
 /* data buffer use by ring buffer */
-static uint8_t data_buffer_CM7_to_CM4[DATA_BUFFER_SIZE] __attribute((section(".common_buffers")));
-static uint8_t data_buffer_CM4_to_CM7[DATA_BUFFER_SIZE] __attribute((section(".common_buffers")));
+static uint8_t data_buffer_CM7_to_CM4[DATA_BUFFER_SIZE] __attribute((section(".buffer_CM7_to_CM4")));
+static uint8_t data_buffer_CM4_to_CM7[DATA_BUFFER_SIZE] __attribute((section(".buffer_CM4_to_CM7")));
 /* ring buffer structures */
-static ring_buffer ring_buffer_CM7_to_CM4 __attribute((section(".common_buffers")));;
-static ring_buffer ring_buffer_CM4_to_CM7 __attribute((section(".common_buffers")));;
+static ring_buffer ring_buffer_CM7_to_CM4 __attribute((section(".ring_buffer_CM7_to_CM4")));
+static ring_buffer ring_buffer_CM4_to_CM7 __attribute((section(".ring_buffer_CM4_to_CM7")));
+/* message counters */
+static uint32_t message_counter_CM7_to_CM4 __attribute((section(".message_counter_CM7_to_CM4")));
+static uint32_t message_counter_CM4_to_CM7 __attribute((section(".message_counter_CM4_to_CM7")));
 /* temporary buffer required during receiving data */
 static uint8_t tmp_buffer[MAX_PAYLOAD];
 
 /* context for Cortex M7*/
 #ifdef CORE_CM7
-static synthcom_ctx ctx = {.ring_buffer_Tx = &ring_buffer_CM7_to_CM4, .ring_buffer_Rx = &ring_buffer_CM4_to_CM7};
+static synthcom_ctx ctx = {.ring_buffer_Tx = &ring_buffer_CM7_to_CM4, .ring_buffer_Rx = &ring_buffer_CM4_to_CM7, .message_counter_own = &message_counter_CM4_to_CM7, .message_counter_second_core = &message_counter_CM7_to_CM4};
 #endif
 
 /* context for Cortex M4 */
 #ifdef CORE_CM4
-static synthcom_ctx ctx = {.ring_buffer_Tx = &ring_buffer_CM4_to_CM7, .ring_buffer_Rx = &ring_buffer_CM7_to_CM4};
+static synthcom_ctx ctx = {.ring_buffer_Tx = &ring_buffer_CM4_to_CM7, .ring_buffer_Rx = &ring_buffer_CM7_to_CM4, .message_counter_own = &message_counter_CM7_to_CM4, .message_counter_second_core = &message_counter_CM4_to_CM7};
 #endif
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 void SynthCom_Init(void)
 {
+#ifdef CORE_CM7
     /* Init ring buffers */
     RingBuffer_init(ctx.ring_buffer_Tx, data_buffer_CM7_to_CM4, DATA_BUFFER_SIZE);
     RingBuffer_init(ctx.ring_buffer_Rx, data_buffer_CM4_to_CM7, DATA_BUFFER_SIZE);
+    message_counter_CM7_to_CM4 = 0;
+#endif
 
-    /* There was a problem when variables was used instead of pointers due to allocation after -ofast flag was set
-     * (different address for CM7 and CM4). This is simple workaround.
-     */
-    ctx.message_counter_own = MESSAGE_COUNTER_CM7_ADD;
-    *ctx.message_counter_own = 0;
-    ctx.message_counter_second_core = MESSAGE_COUNTER_CM4_ADD;
-    *ctx.message_counter_second_core = 0;
+#ifdef CORE_CM4
+    /* Init ring buffers */
+    RingBuffer_init(ctx.ring_buffer_Rx, data_buffer_CM7_to_CM4, DATA_BUFFER_SIZE);
+    RingBuffer_init(ctx.ring_buffer_Tx, data_buffer_CM4_to_CM7, DATA_BUFFER_SIZE);
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -108,7 +109,6 @@ bool SynthCom_process(void)
     {
         /* Get packet type byte */
         status = RingBuffer_get_val(ctx.ring_buffer_Rx, &packet_type);
-
         if (false == status)
         {
             utility_ErrLedOn();
@@ -119,7 +119,6 @@ bool SynthCom_process(void)
         for (size_t i = 0; i < payload_packets[packet_type]; i++)
         {
             status = RingBuffer_get_val(ctx.ring_buffer_Rx, (tmp_buffer + i));
-
             if (false == status)
             {
                 utility_ErrLedOn();
@@ -129,18 +128,25 @@ bool SynthCom_process(void)
 
         switch (packet_type)
         {
+#ifdef CORE_CM7
         case SYNTHCOM_MIDI_KEY_ON:
             sin_gen_set_play(true, ((SynthComPacket_midi_key_on *)tmp_buffer)->note_number);
             break;
         case SYNTHCOM_MIDI_KEY_OFF:
             sin_gen_set_play(false, ((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
+#endif
+#ifdef CORE_CM4
+        case SYNTHCOM_MIDI_KEY_ON:
+        case SYNTHCOM_MIDI_KEY_OFF:
+#endif
         default:
             utility_ErrLedOn();
             goto ret;
             break;
         }
 
+        /* decrement second core message counter */
         (*ctx.message_counter_own)--;
     }
     status = true;

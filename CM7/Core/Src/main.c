@@ -27,6 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "string.h"
 #include "sin_gen.h"
 #include "utility.h"
@@ -127,11 +128,11 @@ Error_Handler();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2S1_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_TIM17_Init();
   MX_TIM16_Init();
+  MX_I2S1_Init();
   /* USER CODE BEGIN 2 */
   sin_gen_init();
   SynthCom_Init();
@@ -140,6 +141,7 @@ Error_Handler();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
     /* USER CODE END WHILE */

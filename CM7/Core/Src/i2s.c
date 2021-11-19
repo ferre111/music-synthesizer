@@ -105,7 +105,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 
     /* I2S1 DMA Init */
     /* SPI1_TX Init */
-    hdma_spi1_tx.Instance = DMA2_Stream0;
+    hdma_spi1_tx.Instance = DMA1_Stream1;
     hdma_spi1_tx.Init.Request = DMA_REQUEST_SPI1_TX;
     hdma_spi1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_spi1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -122,9 +122,6 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 
     __HAL_LINKDMA(i2sHandle,hdmatx,hdma_spi1_tx);
 
-    /* I2S1 interrupt Init */
-    HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspInit 1 */
 
   /* USER CODE END SPI1_MspInit 1 */
@@ -154,9 +151,6 @@ void HAL_I2S_MspDeInit(I2S_HandleTypeDef* i2sHandle)
 
     /* I2S1 DMA DeInit */
     HAL_DMA_DeInit(i2sHandle->hdmatx);
-
-    /* I2S1 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspDeInit 1 */
 
   /* USER CODE END SPI1_MspDeInit 1 */
