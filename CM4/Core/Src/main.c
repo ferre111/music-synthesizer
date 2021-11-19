@@ -20,16 +20,21 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "spi.h"
 #include "tim.h"
 #include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
+#include <stdio.h>
 #include "synthcom.h"
-#include "utility.h"
+#include "encoder.h"
 #include "midi.h"
+#include "OLED.h"
+#include "utility.h"
+#include "buttons.h"
+#include "menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,9 +118,15 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM14_Init();
   MX_USB_HOST_Init();
+  MX_SPI2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   SynthCom_Init();
+  OLED_Init();
+  OLED_setDisplayOn();
+  Menu_init();
   HAL_TIM_Base_Start_IT(&htim14);
+  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,6 +137,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    Menu_process();
+    OLED_update();
+    encoder_process();
+    Buttons_process();
     MIDI_App_Process();
     MX_USB_HOST_Process();
     SynthCom_process();

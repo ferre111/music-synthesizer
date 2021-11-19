@@ -161,14 +161,69 @@ SECTIONS
 
   /* Uninitialized common buffers (shared between two cores) */
   . = ALIGN(4);
-  .common_buffers :
+  .message_counter_CM7_to_CM4 :
   {
-  _scommon_buffers = .;
-  *(.common_buffers)
-  *(.common_buffers*)
+  _smessage_counter_CM7_to_CM4 = .;
+  *(.message_counter_CM7_to_CM4)
+  *(.message_counter_CM7_to_CM4*)
   
   . = ALIGN(4);
-  _ecommon_buffers = .;
+  _emessage_counter_CM7_to_CM4 = .;
+  } >RAM_D3
+
+  . = ALIGN(4);
+  .message_counter_CM4_to_CM7 :
+  {
+  _smessage_counter_CM4_to_CM7 = .;
+  *(.message_counter_CM4_to_CM7)
+  *(.message_counter_CM4_to_CM7*)
+  
+  . = ALIGN(4);
+  _emessage_counter_CM4_to_CM7 = .;
+  } >RAM_D3
+
+  . = ALIGN(4);
+  .buffer_CM7_to_CM4 :
+  {
+  _sbuffer_CM7_to_CM4 = .;
+  *(.buffer_CM7_to_CM4)
+  *(.buffer_CM7_to_CM4*)
+  
+  . = ALIGN(4);
+  _ebuffer_CM7_to_CM4 = .;
+  } >RAM_D3
+  
+  . = ALIGN(4);
+  .buffer_CM4_to_CM7 :
+  {
+  _sbuffer_CM4_to_CM7 = .;
+  *(.buffer_CM4_to_CM7)
+  *(.buffer_CM4_to_CM7*)
+  
+  . = ALIGN(4);
+  _ebuffer_CM4_to_CM7 = .;
+  } >RAM_D3
+  
+  . = ALIGN(4);
+  .ring_buffer_CM7_to_CM4 :
+  {
+  _sring_buffer_CM7_to_CM4 = .;
+  *(.ring_buffer_CM7_to_CM4)
+  *(.ring_buffer_CM7_to_CM4*)
+  
+  . = ALIGN(4);
+  _ering_buffer_CM7_to_CM4 = .;
+  } >RAM_D3
+  
+  . = ALIGN(4);
+  .ring_buffer_CM4_to_CM7 :
+  {
+  _sring_buffer_CM4_to_CM7 = .;
+  *(.ring_buffer_CM4_to_CM7)
+  *(.ring_buffer_CM4_to_CM7*)
+  
+  . = ALIGN(4);
+  _ering_buffer_CM4_to_CM7 = .;
   } >RAM_D3
 
   /* Remove information from the standard libraries */

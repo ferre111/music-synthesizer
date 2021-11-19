@@ -50,3 +50,10 @@ void utility_TimeMeasurmentsToggle(void)
 {
     HAL_GPIO_TogglePin(TIME_MEASURMENT_GPIO_Port, TIME_MEASURMENT_Pin);
 }
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void utility_BlankFun(void)
+{
+    __NOP();
+}

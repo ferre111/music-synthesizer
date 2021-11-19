@@ -13,5 +13,6 @@ void utility_ErrLedOff(void);
 void utility_TimeMeasurmentsSetHigh(void);
 void utility_TimeMeasurmentsSetLow(void);
 void utility_TimeMeasurmentsToggle(void);
+void utility_BlankFun(void);
 
 #endif /* APP_UTILITY_H_ */
