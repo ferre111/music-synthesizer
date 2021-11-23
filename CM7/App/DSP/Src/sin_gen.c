@@ -210,9 +210,12 @@ void sin_gen_set_play(bool flag, uint8_t key_number)
     {
         for (uint8_t i = 0; i < VOICES_COUNT; i++)
         {
-            if (ctx.voices_tab[i].key_number == key_number && voice_status_Off != ctx.voices_tab[i].voice_status)
+            if (ctx.voices_tab[i].key_number == key_number && voice_status_Off != ctx.voices_tab[i].voice_status && voice_status_Release != ctx.voices_tab[i].voice_status)
             {
                 ctx.voices_tab[i].voice_status = voice_status_Release;
+
+                ctx.voices_tab[i].attack_counter = 0U;
+                ctx.voices_tab[i].decay_counter = 0U;
                 return;
             }
         }
