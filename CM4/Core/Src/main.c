@@ -139,7 +139,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     Menu_process();
     OLED_update();
-    encoder_process();
+    Encoder_process();
     Buttons_process();
     MIDI_App_Process();
     MX_USB_HOST_Process();

@@ -16,10 +16,13 @@
 #define VOICES_COUNT 10
 
 /* default envelop generator values */
-#define DEF_SUSTAIN_LEVEL 50
-#define DEF_ATTACK_TIME 2000
-#define DEF_DECAY_TIME 2000
-#define DEF_RELEASE_TIME 2000
+/* WARNING! THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c*/
+#define DEF_SUSTAIN_LEVEL   75U
+#define DEF_ATTACK_TIME     250U
+#define DEF_DECAY_TIME      100U
+#define DEF_RELEASE_TIME    250U
+
+#define NUMBER_OF_SAMPLES_IN_MILISECOND 48U
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -159,9 +162,9 @@ void sin_gen_process(void)
 void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time)
 {
     eg_ctx.sustain_level = sustain_level;
-    eg_ctx.attack_time = attack_time;
-    eg_ctx.decay_time = decay_time;
-    eg_ctx.release_time = release_time;
+    eg_ctx.attack_time = attack_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
+    eg_ctx.decay_time = decay_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
+    eg_ctx.release_time = release_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
 
     sin_gen_update_envelop_generator_coef_update();
 }

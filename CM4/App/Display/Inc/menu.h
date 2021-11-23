@@ -43,6 +43,7 @@ typedef struct page_T
 {
     void (*init_fun)(void);
     void (*draw_fun)(void);
+    void (*encoder_button_enter_press)(void);
     void (*exit_fun)(void);
 } page;
 
@@ -73,3 +74,7 @@ void Menu_set_next_page_flag(void);
 //----------------------------------------------------------------------
 
 void Menu_set_prev_page_flag(void);
+
+//----------------------------------------------------------------------
+
+void Menu_set_main_encoder_callbacks(void);

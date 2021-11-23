@@ -6,7 +6,7 @@
  */
 
 #include "encoder.h"
-
+#include "utility.h"
 #include "main.h"
 #include "tim.h"
 
@@ -17,30 +17,44 @@ typedef struct encoder_T
     int16_t count;
     int16_t speed;
     int16_t position;
-    void(*encoder_inc)(void);
-    void(*encoder_dec)(void);
+    callback_increment_fun increment_fun;
+    callback_decrement_fun decrement_fun;
 } encoder;
 
 //--------------------------------------------------------------------------------
 
-static encoder encoder_ctx = {.encoder_inc = utility_BlankFun, .encoder_dec = utility_BlankFun};
+static encoder encoder_ctx = {.increment_fun = utility_BlankFun, .decrement_fun = utility_BlankFun};
 
 //--------------------------------------------------------------------------------
 
-void encoder_process(void)
+void Encoder_process(void)
 {
     static int16_t position = 0;
     if ((encoder_ctx.position - position) >= 1)
     {
-        encoder_ctx.encoder_inc();
+        encoder_ctx.increment_fun();
     }
 
     if ((encoder_ctx.position - position) <= -1)
     {
-        encoder_ctx.encoder_dec();
+        encoder_ctx.decrement_fun();
     }
 
     position = encoder_ctx.position;
+}
+
+//--------------------------------------------------------------------------------
+
+void Encoder_set_callback_increment_fun(callback_increment_fun fun)
+{
+    encoder_ctx.increment_fun = fun;
+}
+
+//--------------------------------------------------------------------------------
+
+void Encoder_set_callback_decrement_fun(callback_decrement_fun fun)
+{
+    encoder_ctx.decrement_fun = fun;
 }
 
 //--------------------------------------------------------------------------------

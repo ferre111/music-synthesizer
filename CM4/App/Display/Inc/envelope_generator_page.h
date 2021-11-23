@@ -13,6 +13,7 @@
 
 void envelope_generator_page_init(void);
 void envelope_generator_page_draw(void);
+void envelope_generator_encoder_enter_press_fun(void);
 void envelope_generator_page_exit(void);
 
 #endif /* DISPLAY_INC_ENVELOPE_GENERATOR_PAGE_H_ */

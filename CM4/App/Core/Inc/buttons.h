@@ -67,4 +67,3 @@ void Buttons_set_callback_press_function(button_types type, callback_press_butto
  *  @param   fun - function
  */
 void Buttons_set_callback_hold_function(button_types type, callback_hold_button fun);
-void utility_BlankFun(void);
