@@ -46,17 +46,18 @@ typedef enum voice_status_T
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-typedef struct sin_gen_voices_T
+typedef struct sin_gen_voice_T
 {
     voice_status voice_status;
     uint32_t freq;
-    uint32_t sample_multiple;
+    uint32_t current_sample;
     uint8_t key_number;
+    uint8_t velocity;
 
     uint32_t attack_counter;
     uint32_t decay_counter;
     uint32_t release_counter;
-} sin_gen_voices;
+} sin_gen_voice;
 
 typedef struct sin_gen_T
 {
@@ -67,7 +68,7 @@ typedef struct sin_gen_T
     /* pointer to currently edited "virtual" buffer */
     int16_t *table_ptr;
     /* pointer to array with structures specifying actual playing waves */
-    sin_gen_voices *voices_tab;
+    sin_gen_voice *voices_tab;
     /* with this flag we can check whether current "virtual" buffer has been filled */
     volatile bool buff_ready;
 } sin_gen;
@@ -100,13 +101,16 @@ typedef struct sin_gen_envelop_generator_T
     double decay_coef;
     double sustain_coef;
     double release_coef;
+    /* max amplitude during transition to Release state, this maximal amplitude value results from a linear equation related with ADSR envelope generator */
+    double max_ampl_release_transition;
 } sin_gen_envelop_generator;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 void sin_gen_process(void);
 void sin_gen_init(void);
-void sin_gen_set_play(bool flag, uint8_t key_number);
+void sin_gen_set_voice_start_play(uint8_t key_number);
+void sin_gen_set_voice_stop_play(uint8_t key_number);
 void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
 
 #endif

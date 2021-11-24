@@ -11,14 +11,36 @@
 #include "stdbool.h"
 #include "synthcom.h"
 
-#define RX_BUFF_SIZE 16 /* USB MIDI buffer : max received data 16 bytes */
-
 extern USBH_HandleTypeDef hUsbHostFS;
 
-uint8_t MIDI_RX_Buffer[RX_BUFF_SIZE]; // MIDI reception buffer
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
-static midi_ctx ctx = {.midi_state = MIDI_APP_IDLE, .channel = 0};
+/* USB MIDI buffer : max received data 16 bytes */
+#define RX_BUFF_SIZE 16
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+typedef struct midi_ctx_T
+{
+    midi_app_states midi_state;
+    uint32_t        channel;
+    uint8_t*        midi_buffer_recive;
+    uint8_t*        midi_buffer_read;
+}midi_ctx;
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+/* MIDI reception buffer */
+static uint8_t MIDI_RX_Buffer[2][RX_BUFF_SIZE];
+
+static midi_ctx ctx = {.midi_state = MIDI_APP_IDLE, .channel = 0U, .midi_buffer_recive = MIDI_RX_Buffer[0], .midi_buffer_read = MIDI_RX_Buffer[1]};
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 static void MIDI_App_ReceiveFrame(void);
+static void swap_buffers(void);
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 void MIDI_App_Process(void)
 {
@@ -27,7 +49,8 @@ void MIDI_App_Process(void)
     case MIDI_APP_IDLE:
         break;
     case MIDI_APP_START:
-        USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start first reception
+        /* start first reception */
+        USBH_MIDI_Receive(&hUsbHostFS, ctx.midi_buffer_recive, RX_BUFF_SIZE);
         MIDI_App_SetState(MIDI_APP_RUNNING);
         break;
     case MIDI_APP_RUNNING:
@@ -39,39 +62,43 @@ void MIDI_App_Process(void)
     }
 }
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 void MIDI_App_SetState(midi_app_states state)
 {
     ctx.midi_state = state;
 }
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
 midi_app_states MIDI_App_GetState(void)
 {
     return ctx.midi_state;
 }
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
-    USBH_MIDI_Receive(&hUsbHostFS, MIDI_RX_Buffer, RX_BUFF_SIZE); // start a new reception
-    //todo moze tu wylaczyc przerwania na czas wykonywania poniższej funckji bądź można pomyśleć nad drugim bufforem MIDI_RX_Buffer
+    /* start a new reception */
+    swap_buffers();
+    USBH_MIDI_Receive(&hUsbHostFS, ctx.midi_buffer_recive, RX_BUFF_SIZE); //
     MIDI_App_ReceiveFrame();
 }
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 static void MIDI_App_ReceiveFrame(void)
 {
-    uint8_t tmp; //todo
-    if (ctx.channel == (MIDI_RX_Buffer[1] & ~(0xF0U)))   //check MIDI channel
+    if (ctx.channel == (ctx.midi_buffer_read[1] & ~(0xF0U)))   //check MIDI channel
     {
-        switch (MIDI_RX_Buffer[1] >> 4U)                //check status
+        switch (ctx.midi_buffer_read[1] >> 4U)                //check status
         {
         case MIDI_NOTE_OFF:
-            tmp = MIDI_RX_Buffer[2];
-            SynthCom_transmit(SYNTHCOM_MIDI_KEY_OFF, &tmp);
-//            sin_gen_set_play(false, MIDI_RX_Buffer[2]);
+            SynthCom_transmit(SYNTHCOM_MIDI_KEY_OFF, &ctx.midi_buffer_read[2]);
             break;
         case MIDI_NOTE_ON:
-            tmp = MIDI_RX_Buffer[2];
-            SynthCom_transmit(SYNTHCOM_MIDI_KEY_ON, &tmp);
-//            sin_gen_set_play(true, MIDI_RX_Buffer[2]);
+            SynthCom_transmit(SYNTHCOM_MIDI_KEY_ON, &ctx.midi_buffer_read[2]);
             break;
         case MIDI_POLY_PRESSURE:
             break;
@@ -84,5 +111,26 @@ static void MIDI_App_ReceiveFrame(void)
         case MIDI_PITCH_BEND:
             break;
         }
+    }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static void swap_buffers(void)
+{
+    static bool flag;
+
+    /* change flag value */
+    flag ^= 1U;
+
+    if (flag)
+    {
+        ctx.midi_buffer_recive = MIDI_RX_Buffer[1];
+        ctx.midi_buffer_read = MIDI_RX_Buffer[0];
+    }
+    else
+    {
+        ctx.midi_buffer_recive = MIDI_RX_Buffer[0];
+        ctx.midi_buffer_read = MIDI_RX_Buffer[1];
     }
 }

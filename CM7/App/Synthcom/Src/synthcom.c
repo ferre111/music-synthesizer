@@ -130,10 +130,10 @@ bool SynthCom_process(void)
         {
 #ifdef CORE_CM7
         case SYNTHCOM_MIDI_KEY_ON:
-            sin_gen_set_play(true, ((SynthComPacket_midi_key_on *)tmp_buffer)->note_number);
+            sin_gen_set_voice_start_play(((SynthComPacket_midi_key_on *)tmp_buffer)->note_number);
             break;
         case SYNTHCOM_MIDI_KEY_OFF:
-            sin_gen_set_play(false, ((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
+            sin_gen_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
             sin_gen_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);

@@ -26,12 +26,6 @@ typedef enum midi_app_states_T
     MIDI_APP_DISCONNECT
 } midi_app_states;
 
-typedef struct midi_ctx_T
-{
-    midi_app_states midi_state;
-    uint32_t        channel;
-}midi_ctx;
-
 void MIDI_App_Process(void);
 void MIDI_App_SetState(midi_app_states state);
 midi_app_states MIDI_App_GetState(void);

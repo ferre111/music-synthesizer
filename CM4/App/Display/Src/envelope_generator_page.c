@@ -117,6 +117,7 @@ void envelope_generator_page_exit(void)
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_DECAY_TIME].envelop_generator_setting_id);
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].envelop_generator_setting_id);
 }
+
 //----------------------------------------------------------------------
 
 
