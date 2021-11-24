@@ -130,7 +130,7 @@ bool SynthCom_process(void)
         {
 #ifdef CORE_CM7
         case SYNTHCOM_MIDI_KEY_ON:
-            sin_gen_set_voice_start_play(((SynthComPacket_midi_key_on *)tmp_buffer)->note_number);
+            sin_gen_set_voice_start_play(((SynthComPacket_midi_key_on *)tmp_buffer)->note_number, ((SynthComPacket_midi_key_on *)tmp_buffer)->velocity);
             break;
         case SYNTHCOM_MIDI_KEY_OFF:
             sin_gen_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);

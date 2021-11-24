@@ -13,7 +13,7 @@
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-#define VOICES_COUNT 10
+#define VOICE_COUNT 10
 
 /* default envelop generator values */
 /* WARNING! THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c*/
@@ -27,7 +27,7 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* array with "voices", one voice - one wave (e.g. sine) on the output */
-static sin_gen_voice voices_tab[VOICES_COUNT] =
+static sin_gen_voice voices_tab[VOICE_COUNT] =
 {
         [0] = {.voice_status = voice_status_Off},
         [1] = {.voice_status = voice_status_Off},
@@ -48,7 +48,8 @@ static sin_gen_envelop_generator eg_ctx;
 
 static void sin_gen_set_freq(uint8_t voice_index);
 static void sin_gen_update_envelop_generator_coef_update(void);
-static int16_t sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice);
+static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice);
+static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_gen_voice);
 inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t value);
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -104,7 +105,7 @@ void sin_gen_process(void)
         memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
 
         /* go through all voices */
-        for (uint8_t i = 0U; i < VOICES_COUNT; i++)
+        for (uint8_t i = 0U; i < VOICE_COUNT; i++)
         {
             /* if voice status is different than Off then fill table */
             if (voice_status_Off != ctx.voices_tab[i].voice_status)
@@ -113,7 +114,8 @@ void sin_gen_process(void)
                 do
                 {
                     /* write sample after envelope generator edit it */
-                    sin_gen_write_one_sample(table_current_sample, sin_gen_envelope_generator(wavetable[ctx.voices_tab[i].current_sample], &ctx.voices_tab[i]) / VOICES_COUNT);
+                    sin_gen_write_one_sample(table_current_sample,
+                            sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(wavetable[ctx.voices_tab[i].current_sample], &ctx.voices_tab[i]), &ctx.voices_tab[i]));
 
                     /* set next sample from wavetable */
                     ctx.voices_tab[i].current_sample += ctx.voices_tab[i].freq;
@@ -154,10 +156,10 @@ void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 
-void sin_gen_set_voice_start_play(uint8_t key_number)
+void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity)
 {
     /* go through all voices */
-    for (uint8_t i = 0; i < VOICES_COUNT; i++)
+    for (uint8_t i = 0; i < VOICE_COUNT; i++)
     {
         /* search for a free voice */
         if (voice_status_Off == ctx.voices_tab[i].voice_status)
@@ -166,6 +168,8 @@ void sin_gen_set_voice_start_play(uint8_t key_number)
             ctx.voices_tab[i].voice_status = voice_status_Attack;
             /* set key number */
             ctx.voices_tab[i].key_number = key_number;
+            /* set velocity */
+            ctx.voices_tab[i].velocity = velocity;
             /* set other required variables */
             sin_gen_set_freq(i);
 
@@ -179,7 +183,7 @@ void sin_gen_set_voice_start_play(uint8_t key_number)
 void sin_gen_set_voice_stop_play(uint8_t key_number)
 {
     /* go through all voices */
-    for (uint8_t i = 0; i < VOICES_COUNT; i++)
+    for (uint8_t i = 0; i < VOICE_COUNT; i++)
     {
         /* search for a voice with same key number as function argument, voice status can't be Off or Release */
         if (ctx.voices_tab[i].key_number == key_number && voice_status_Off != ctx.voices_tab[i].voice_status && voice_status_Release != ctx.voices_tab[i].voice_status)
@@ -240,12 +244,13 @@ static void sin_gen_update_envelop_generator_coef_update(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static int16_t sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice)
+static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice)
 {
+    double new_val = 0.0;
     switch(sin_gen_voice->voice_status)
     {
         case voice_status_Attack:
-            val = (int16_t)(eg_ctx.attack_coef * (double)sin_gen_voice->attack_counter * (double)val);
+            new_val = eg_ctx.attack_coef * (double)sin_gen_voice->attack_counter * (double)val;
 
             if (++sin_gen_voice->attack_counter == eg_ctx.attack_time)
             {
@@ -254,7 +259,7 @@ static int16_t sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_vo
             }
             break;
         case voice_status_Decay:
-            val = (int16_t)((eg_ctx.decay_coef * (double)sin_gen_voice->decay_counter + 1.0) * (double)val);
+            new_val = (eg_ctx.decay_coef * (double)sin_gen_voice->decay_counter + 1.0) * (double)val;
 
             if (++sin_gen_voice->decay_counter == eg_ctx.decay_time)
             {
@@ -263,10 +268,10 @@ static int16_t sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_vo
             }
             break;
         case voice_status_Sustain:
-            val = (int16_t)(eg_ctx.sustain_coef * (double)val);
+            new_val = eg_ctx.sustain_coef * (double)val;
             break;
         case voice_status_Release:
-            val = (int16_t)((eg_ctx.release_coef * (double)sin_gen_voice->release_counter + eg_ctx.max_ampl_release_transition) * (double)val);
+            new_val = (eg_ctx.release_coef * (double)sin_gen_voice->release_counter + eg_ctx.max_ampl_release_transition) * (double)val;
 
             if (++sin_gen_voice->release_counter == eg_ctx.release_time)
             {
@@ -277,7 +282,18 @@ static int16_t sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_vo
         case voice_status_Off:
             break;
     }
-    return val;
+    return new_val;
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_gen_voice)
+{
+    int16_t new_val = 0.0;
+
+    new_val = (int16_t)((val * sin_gen_voice->velocity) / (255.0 * (double)VOICE_COUNT));
+
+    return new_val;
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

@@ -109,7 +109,7 @@ typedef struct sin_gen_envelop_generator_T
 
 void sin_gen_process(void);
 void sin_gen_init(void);
-void sin_gen_set_voice_start_play(uint8_t key_number);
+void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity);
 void sin_gen_set_voice_stop_play(uint8_t key_number);
 void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
 
