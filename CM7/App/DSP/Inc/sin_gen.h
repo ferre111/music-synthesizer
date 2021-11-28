@@ -11,6 +11,7 @@
 #include "wavetable.h"
 #include "main.h"
 #include "stdbool.h"
+#include "IIR_generator.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -21,35 +22,42 @@
 
 typedef enum note_T
 {
-    note_C,
-    note_Db,
-    note_D,
-    note_Eb,
-    note_E,
-    note_F,
-    note_Gb,
-    note_G,
-    note_Ab,
-    note_A,
-    note_Bb,
-    note_B
+    NOTE_C,
+    NOTE_Db,
+    NOTE_D,
+    NOTE_Eb,
+    NOTE_E,
+    NOTE_F,
+    NOTE_Gb,
+    NOTE_G,
+    NOTE_Ab,
+    NOTE_A,
+    NOTE_Bb,
+    NOTE_B
 } note;
 
 typedef enum voice_status_T
 {
-    voice_status_Attack,
-    voice_status_Decay,
-    voice_status_Sustain,
-    voice_status_Release,
-    voice_status_Off
+    VOICE_STATUS_ATTACK,
+    VOICE_STATUS_DECAY,
+    VOICE_STATUS_SUSTAIN,
+    VOICE_STATUS_RELEASE,
+    VOICE_STATUS_OFF
 } voice_status;
+
+typedef enum types_of_synth_T
+{
+    TYPES_OF_SYNTH_WAVETABLE,
+    TYPES_OF_SYNTH_IIR,
+    TYPES_OF_SYNTH_FM
+} types_of_synth;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 typedef struct sin_gen_voice_T
 {
     voice_status voice_status;
-    uint32_t freq;
+    double freq;
     uint32_t current_sample;
     uint8_t key_number;
     uint8_t velocity;
@@ -57,6 +65,8 @@ typedef struct sin_gen_voice_T
     uint32_t attack_counter;
     uint32_t decay_counter;
     uint32_t release_counter;
+
+    IIR_generator IIR_generator;
 } sin_gen_voice;
 
 typedef struct sin_gen_T
@@ -71,6 +81,8 @@ typedef struct sin_gen_T
     sin_gen_voice *voices_tab;
     /* with this flag we can check whether current "virtual" buffer has been filled */
     volatile bool buff_ready;
+    /* determines type of actual synthesis method */
+    types_of_synth type_of_synth;
 } sin_gen;
 
 /*

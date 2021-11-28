@@ -32,6 +32,7 @@
 #include "sin_gen.h"
 #include "utility.h"
 #include "synthcom.h"
+#include "IIR_generator.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -141,7 +142,6 @@ Error_Handler();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
   while (1)
   {
     /* USER CODE END WHILE */

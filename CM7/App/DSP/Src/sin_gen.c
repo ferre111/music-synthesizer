@@ -16,7 +16,7 @@
 #define VOICE_COUNT 10
 
 /* default envelop generator values */
-/* WARNING! THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c*/
+#warning THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c
 #define DEF_SUSTAIN_LEVEL   75U
 #define DEF_ATTACK_TIME     250U
 #define DEF_DECAY_TIME      100U
@@ -29,46 +29,48 @@
 /* array with "voices", one voice - one wave (e.g. sine) on the output */
 static sin_gen_voice voices_tab[VOICE_COUNT] =
 {
-        [0] = {.voice_status = voice_status_Off},
-        [1] = {.voice_status = voice_status_Off},
-        [2] = {.voice_status = voice_status_Off},
-        [3] = {.voice_status = voice_status_Off},
-        [4] = {.voice_status = voice_status_Off},
-        [5] = {.voice_status = voice_status_Off},
-        [6] = {.voice_status = voice_status_Off},
-        [7] = {.voice_status = voice_status_Off},
-        [8] = {.voice_status = voice_status_Off},
-        [9] = {.voice_status = voice_status_Off}
+        [0] = {.voice_status = VOICE_STATUS_OFF},
+        [1] = {.voice_status = VOICE_STATUS_OFF},
+        [2] = {.voice_status = VOICE_STATUS_OFF},
+        [3] = {.voice_status = VOICE_STATUS_OFF},
+        [4] = {.voice_status = VOICE_STATUS_OFF},
+        [5] = {.voice_status = VOICE_STATUS_OFF},
+        [6] = {.voice_status = VOICE_STATUS_OFF},
+        [7] = {.voice_status = VOICE_STATUS_OFF},
+        [8] = {.voice_status = VOICE_STATUS_OFF},
+        [9] = {.voice_status = VOICE_STATUS_OFF}
 };
 
-static sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true};
+static sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_WAVETABLE};
 static sin_gen_envelop_generator eg_ctx;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_set_freq(uint8_t voice_index);
+static void sin_gen_set_freq(sin_gen_voice* sin_gen_voice);
 static void sin_gen_update_envelop_generator_coef_update(void);
 static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice);
 static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_gen_voice);
 inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t value);
+static void sin_gen_wavetable(sin_gen_voice* sin_gen_voice);
+static void sin_gen_IIR(sin_gen_voice* sin_gen_voice);
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* Basic notes array */
-const static float note_freq[12] =
+const static double note_freq[12] =
 {
-    [note_C]    = 16.35,
-    [note_Db]   = 17.32,
-    [note_D]    = 18.35,
-    [note_Eb]   = 19.45,
-    [note_E]    = 20.60,
-    [note_F]    = 21.83,
-    [note_Gb]   = 23.12,
-    [note_G]    = 24.50,
-    [note_Ab]   = 25.96,
-    [note_A]    = 27.50,
-    [note_Bb]   = 29.14,
-    [note_B]    = 30.87
+    [NOTE_C]    = 16.35,
+    [NOTE_Db]   = 17.32,
+    [NOTE_D]    = 18.35,
+    [NOTE_Eb]   = 19.45,
+    [NOTE_E]    = 20.60,
+    [NOTE_F]    = 21.83,
+    [NOTE_Gb]   = 23.12,
+    [NOTE_G]    = 24.50,
+    [NOTE_Ab]   = 25.96,
+    [NOTE_A]    = 27.50,
+    [NOTE_Bb]   = 29.14,
+    [NOTE_B]    = 30.87
 };
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -85,8 +87,6 @@ void sin_gen_init(void)
 
 void sin_gen_process(void)
 {
-    uint32_t table_current_sample = 0U;
-
     if (ctx.dma_flag)
     {
         utility_TimeMeasurmentsSetHigh();
@@ -108,29 +108,19 @@ void sin_gen_process(void)
         for (uint8_t i = 0U; i < VOICE_COUNT; i++)
         {
             /* if voice status is different than Off then fill table */
-            if (voice_status_Off != ctx.voices_tab[i].voice_status)
+            if (VOICE_STATUS_OFF != ctx.voices_tab[i].voice_status)
             {
-                /* fill all samples in table */
-                do
+                switch(ctx.type_of_synth)
                 {
-                    /* write sample after envelope generator edit it */
-                    sin_gen_write_one_sample(table_current_sample,
-                            sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(wavetable[ctx.voices_tab[i].current_sample], &ctx.voices_tab[i]), &ctx.voices_tab[i]));
-
-                    /* set next sample from wavetable */
-                    ctx.voices_tab[i].current_sample += ctx.voices_tab[i].freq;
-
-                    /* check if current sample variable is bigger than wavetable length */
-                    if (ctx.voices_tab[i].current_sample > (SAMPLE_COUNT - 1U))
-                    {
-                        /* if yes perform modulo */
-                        ctx.voices_tab[i].current_sample = ctx.voices_tab[i].current_sample % SAMPLE_COUNT;
-                    }
-
-                    /* in one iteration two samples are write to table */
-                    table_current_sample += 2U;
-                } while (0U != (PACKED_SIZE - table_current_sample));
-                table_current_sample = 0U;
+                case TYPES_OF_SYNTH_WAVETABLE:
+                    sin_gen_wavetable(&ctx.voices_tab[i]);
+                    break;
+                case TYPES_OF_SYNTH_IIR:
+                    sin_gen_IIR(&ctx.voices_tab[i]);
+                    break;
+                case TYPES_OF_SYNTH_FM:
+                    break;
+                }
             }
         }
         /* Clean DCache after filling whole table */
@@ -155,24 +145,27 @@ void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, 
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-
 void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity)
 {
     /* go through all voices */
     for (uint8_t i = 0; i < VOICE_COUNT; i++)
     {
         /* search for a free voice */
-        if (voice_status_Off == ctx.voices_tab[i].voice_status)
+        if (VOICE_STATUS_OFF == ctx.voices_tab[i].voice_status)
         {
             /* set voice status as Attack */
-            ctx.voices_tab[i].voice_status = voice_status_Attack;
+            ctx.voices_tab[i].voice_status = VOICE_STATUS_ATTACK;
             /* set key number */
             ctx.voices_tab[i].key_number = key_number;
             /* set velocity */
             ctx.voices_tab[i].velocity = velocity;
             /* set other required variables */
-            sin_gen_set_freq(i);
-
+            sin_gen_set_freq(&ctx.voices_tab[i]);
+            /* if currently synthesis method is based on IIR filter then calculate required coefficients */
+            if (TYPES_OF_SYNTH_IIR == ctx.type_of_synth)
+            {
+                IIR_generator_compute_coef(&ctx.voices_tab[i].IIR_generator, ctx.voices_tab[i].freq);
+            }
             /* return from function */
             return;
         }
@@ -186,10 +179,10 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
     for (uint8_t i = 0; i < VOICE_COUNT; i++)
     {
         /* search for a voice with same key number as function argument, voice status can't be Off or Release */
-        if (ctx.voices_tab[i].key_number == key_number && voice_status_Off != ctx.voices_tab[i].voice_status && voice_status_Release != ctx.voices_tab[i].voice_status)
+        if (ctx.voices_tab[i].key_number == key_number && VOICE_STATUS_OFF != ctx.voices_tab[i].voice_status && VOICE_STATUS_RELEASE != ctx.voices_tab[i].voice_status)
         {
             /* if voice status is Attack then... */
-            if (voice_status_Attack == ctx.voices_tab[i].voice_status)
+            if (VOICE_STATUS_ATTACK == ctx.voices_tab[i].voice_status)
             {
                 /* get max amplitude level */
                 eg_ctx.max_ampl_release_transition = eg_ctx.attack_coef * ctx.voices_tab[i].attack_counter;
@@ -197,7 +190,7 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
                 ctx.voices_tab[i].attack_counter = 0U;
             }
             /* if voice status is Decay then... */
-            else if (voice_status_Decay == ctx.voices_tab[i].voice_status)
+            else if (VOICE_STATUS_DECAY == ctx.voices_tab[i].voice_status)
             {
                 /* get max amplitude level */
                 eg_ctx.max_ampl_release_transition = eg_ctx.decay_coef * ctx.voices_tab[i].decay_counter + 1.0;
@@ -205,7 +198,7 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
                 ctx.voices_tab[i].decay_counter = 0U;
             }
             /* if voice status is Sustain then... */
-            else if (voice_status_Sustain == ctx.voices_tab[i].voice_status)
+            else if (VOICE_STATUS_SUSTAIN == ctx.voices_tab[i].voice_status)
             {
                 /* max amplitude level will be equal to sustain coefficient */
                 eg_ctx.max_ampl_release_transition = eg_ctx.sustain_coef;
@@ -214,7 +207,7 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
             /* compute release coefficient */
             eg_ctx.release_coef = -(double)eg_ctx.max_ampl_release_transition / (double)eg_ctx.release_time;
             /* set voice status as Release */
-            ctx.voices_tab[i].voice_status = voice_status_Release;
+            ctx.voices_tab[i].voice_status = VOICE_STATUS_RELEASE;
 
             /* return from function */
             return;
@@ -224,11 +217,12 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_set_freq(uint8_t voice_index)
+static void sin_gen_set_freq(sin_gen_voice* sin_gen_voice)
 {
-    uint8_t key_in_oct = ctx.voices_tab[voice_index].key_number % 12;
-    uint8_t octave = ctx.voices_tab[voice_index].key_number / 12;
-    ctx.voices_tab[voice_index].freq = note_freq[key_in_oct] * pow(2, octave);
+    uint8_t key_in_oct = sin_gen_voice->key_number % 12;
+    uint8_t octave = sin_gen_voice->key_number / 12;
+
+    sin_gen_voice->freq = note_freq[key_in_oct] * pow(2, octave);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -249,37 +243,37 @@ static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voi
     double new_val = 0.0;
     switch(sin_gen_voice->voice_status)
     {
-        case voice_status_Attack:
+        case VOICE_STATUS_ATTACK:
             new_val = eg_ctx.attack_coef * (double)sin_gen_voice->attack_counter * (double)val;
 
             if (++sin_gen_voice->attack_counter == eg_ctx.attack_time)
             {
-                sin_gen_voice->voice_status = voice_status_Decay;
+                sin_gen_voice->voice_status = VOICE_STATUS_DECAY;
                 sin_gen_voice->attack_counter = 0U;
             }
             break;
-        case voice_status_Decay:
+        case VOICE_STATUS_DECAY:
             new_val = (eg_ctx.decay_coef * (double)sin_gen_voice->decay_counter + 1.0) * (double)val;
 
             if (++sin_gen_voice->decay_counter == eg_ctx.decay_time)
             {
-                sin_gen_voice->voice_status = voice_status_Sustain;
+                sin_gen_voice->voice_status = VOICE_STATUS_SUSTAIN;
                 sin_gen_voice->decay_counter = 0U;
             }
             break;
-        case voice_status_Sustain:
+        case VOICE_STATUS_SUSTAIN:
             new_val = eg_ctx.sustain_coef * (double)val;
             break;
-        case voice_status_Release:
+        case VOICE_STATUS_RELEASE:
             new_val = (eg_ctx.release_coef * (double)sin_gen_voice->release_counter + eg_ctx.max_ampl_release_transition) * (double)val;
 
             if (++sin_gen_voice->release_counter == eg_ctx.release_time)
             {
-                sin_gen_voice->voice_status = voice_status_Off;
+                sin_gen_voice->voice_status = VOICE_STATUS_OFF;
                 sin_gen_voice->release_counter = 0U;
             }
             break;
-        case voice_status_Off:
+        case VOICE_STATUS_OFF:
             break;
     }
     return new_val;
@@ -294,6 +288,40 @@ static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_g
     new_val = (int16_t)((val * sin_gen_voice->velocity) / (255.0 * (double)VOICE_COUNT));
 
     return new_val;
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static void sin_gen_wavetable(sin_gen_voice* sin_gen_voice)
+{
+    /* fill all samples in table */
+    for (uint32_t table_current_sample = 0U; table_current_sample < PACKED_SIZE; table_current_sample += 2U)
+    {
+        /* write sample after envelope generator edit it */
+        sin_gen_write_one_sample(table_current_sample,
+                sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(wavetable[sin_gen_voice->current_sample], sin_gen_voice), sin_gen_voice));
+
+        /* set next sample from wavetable */
+        sin_gen_voice->current_sample += (uint32_t)sin_gen_voice->freq;
+
+        /* check if current sample variable is bigger than wavetable length */
+        if (sin_gen_voice->current_sample > (SAMPLE_COUNT - 1U))
+        {
+            /* if so perform modulo */
+            sin_gen_voice->current_sample = sin_gen_voice->current_sample % SAMPLE_COUNT;
+        }
+    }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static void sin_gen_IIR(sin_gen_voice* sin_gen_voice)
+{
+    for (uint32_t i = 0U; i < PACKED_SIZE; i += 2)
+    {
+        sin_gen_write_one_sample(i, sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(
+                (int16_t)(32767 * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice), sin_gen_voice));
+    }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

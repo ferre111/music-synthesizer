@@ -21,7 +21,7 @@
 #define MAX_DECAY_TIME      1000U
 #define MAX_RELEASE_TIME    1000U
 
-/* WARNING! THIS DEFINES MUST BE THE SAME AS IN THE FILE sin_gen.c*/
+#warning THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c
 #define DEF_SUSTAIN_LEVEL   75U
 #define DEF_ATTACK_TIME     250U
 #define DEF_DECAY_TIME      100U
@@ -125,7 +125,7 @@ static void encoder_press_fun(void)
 {
     static bool data_edited_flag;
 
-    data_edited_flag ^= true;
+    data_edited_flag = !data_edited_flag;
 
     if (data_edited_flag)
     {
