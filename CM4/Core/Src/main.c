@@ -35,6 +35,9 @@
 #include "utility.h"
 #include "buttons.h"
 #include "menu.h"
+#include "flash_driver.h"
+#include "ext_flash_driver.h"
+#include "wavetable.h" //todo
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -132,6 +135,13 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+//  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
+//  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
+//  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
+//
+//  HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
+//
+//  int16_t *ptr = (int16_t*)0x90000000;
   while (1)
   {
     /* USER CODE END WHILE */

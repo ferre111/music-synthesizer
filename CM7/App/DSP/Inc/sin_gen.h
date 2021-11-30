@@ -16,7 +16,7 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* size of data (in words) sends by one DMA transfer */
-#define PACKED_SIZE 4800
+#define PACKED_SIZE 48U
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -102,7 +102,7 @@ typedef struct sin_gen_T
 
 typedef struct sin_gen_envelop_generator_T
 {
-    /* sustain level, 1 - 100%, 0.5 - 50% */
+    /* sustain level, 100 - 100%, 50 - 50% */
     uint8_t sustain_level;
     /* time as a 1/480000s */
     uint32_t attack_time;

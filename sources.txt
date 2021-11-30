@@ -8,3 +8,5 @@ https://sound.eti.pg.gda.pl/student/eim/synteza/pojecia.html
 https://www.youtube.com/watch?v=vCcALaGNlyw
 https://www.st.com/resource/en/application_note/dm00273990-digital-signal-processing-for-stm32-microcontrollers-using-cmsis-stmicroelectronics.pdf
 https://www.st.com/resource/en/application_note/dm00306681-stm32h72x-stm32h73x-and-singlecore-stm32h74x75x-system-architecture-and-performance-stmicroelectronics.pdf DO PREZENTACJI!!!
+https://controllerstech.com/flash-programming-in-stm32/
+Document Number: ARM DAI 0033A

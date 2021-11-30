@@ -5,16 +5,16 @@
  *      Author: karol
  */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include "envelope_generator_page.h"
 #include "menu.h"
 #include "buttons.h"
 #include "encoder.h"
 #include "synthcom.h"
+#include "OLED.h"
 
 //----------------------------------------------------------------------
-
-#define NUMBER_OF_LETTERS_IN_LINE 22U
 
 #define MAX_SUSTAIN_LEVEL   100U
 #define MAX_ATTACK_TIME     1000U
@@ -43,12 +43,14 @@ typedef struct setting_data_T
 {
     uint16_t data;
     uint16_t max_value;
-    uint8_t envelop_generator_setting_id;
-    char envelop_generator_setting_txt[NUMBER_OF_LETTERS_IN_LINE];
+    uint8_t setting_id;
+    char setting_txt[NUMBER_OF_LETTERS_IN_LINE];
 } setting_data;
 
 typedef struct envelop_generator_page_T
 {
+    uint8_t heading_id;
+    char heading_txt[NUMBER_OF_LETTERS_IN_LINE];
     current_setting current_setting;
     setting_data    settings_data[Current_setting_end];
 } envelop_generator_page;
@@ -68,54 +70,57 @@ static envelop_generator_page ctx = {.current_setting = CURRENT_SETTING_SUSTAIN_
 //----------------------------------------------------------------------
 
 static void encoder_press_fun(void);
-static void encoder_hold_fun(void);
 static void encoder_inc_browsing_fun(void);
 static void encoder_dec_browsing_fun(void);
 static void encoder_inc_data_fun(void);
 static void encoder_dec_data_fun(void);
+static void encoder_hold_fun(void);
 
 //----------------------------------------------------------------------
 
-void envelope_generator_page_init(void)
+void EnvelopeGenerator_page_init(void)
 {
     /* create all the drawable objects present on this page */
-    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].envelop_generator_setting_id, 0U, 0U, ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].envelop_generator_setting_txt, 1U, false);
-    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].envelop_generator_setting_id, 0U, 8U, ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].envelop_generator_setting_txt, 1U, false);
-    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_DECAY_TIME].envelop_generator_setting_id, 0U, 16U, ctx.settings_data[CURRENT_SETTING_DECAY_TIME].envelop_generator_setting_txt, 1U, false);
-    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].envelop_generator_setting_id, 0U, 24U, ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].envelop_generator_setting_txt, 1U, false);
+    OLED_createTextField(&ctx.heading_id, 40U, 0U, ctx.heading_txt, 2U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_id, 0U, 16U, ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_id, 0U, 24U, ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_id, 0U, 32U, ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_id, 0U, 40U, ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_txt, 1U, false);
+    snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "ADSR");
 }
 
 //----------------------------------------------------------------------
 
-void envelope_generator_page_draw(void)
+void EnvelopeGenerator_page_draw(void)
 {
     /* update text strings printed on display with actual envelope generator data */
-    snprintf(ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].envelop_generator_setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Sustain level: %*u", 6U, ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].data);
-    snprintf(ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].envelop_generator_setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Attack time: %*u", 8U, ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].data);
-    snprintf(ctx.settings_data[CURRENT_SETTING_DECAY_TIME].envelop_generator_setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Decay time: %*u", 9U, ctx.settings_data[CURRENT_SETTING_DECAY_TIME].data);
-    snprintf(ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].envelop_generator_setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Release time: %*u", 7U, ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Sustain level: %*u", 6U, ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Attack time: %*ums", 6U, ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Decay time: %*ums", 7U, ctx.settings_data[CURRENT_SETTING_DECAY_TIME].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Release time: %*ums", 5U, ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].data);
 }
 
 //----------------------------------------------------------------------
 
-void envelope_generator_encoder_enter_press_fun(void)
+void EnvelopeGenerator_encoder_enter_press_fun(void)
 {
     Encoder_set_callback_increment_fun(encoder_inc_browsing_fun);
     Encoder_set_callback_decrement_fun(encoder_dec_browsing_fun);
     Buttons_set_callback_press_function(BUTTON_TYPES_ENCODER, encoder_press_fun);
     Buttons_set_callback_hold_function(BUTTON_TYPES_ENCODER, encoder_hold_fun);
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, true);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, true);
 }
 
 //----------------------------------------------------------------------
 
-void envelope_generator_page_exit(void)
+void EnvelopeGenerator_page_exit(void)
 {
     /* delete objects present on screen at this page */
-    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].envelop_generator_setting_id);
-    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].envelop_generator_setting_id);
-    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_DECAY_TIME].envelop_generator_setting_id);
-    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].envelop_generator_setting_id);
+    OLED_deleteObject(ctx.heading_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_id);
 }
 
 //----------------------------------------------------------------------
@@ -145,7 +150,7 @@ static void encoder_press_fun(void)
 
 static void encoder_inc_browsing_fun(void)
 {
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, false);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, false);
 
     if (CURRENT_SETTING_RELEASE_TIME == ctx.current_setting)
     {
@@ -156,14 +161,14 @@ static void encoder_inc_browsing_fun(void)
         ctx.current_setting++;
     }
 
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, true);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, true);
 }
 
 //----------------------------------------------------------------------
 
 static void encoder_dec_browsing_fun(void)
 {
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, false);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, false);
 
     if (CURRENT_SETTING_SUSTAIN_LEVEL == ctx.current_setting)
     {
@@ -174,7 +179,7 @@ static void encoder_dec_browsing_fun(void)
         ctx.current_setting--;
     }
 
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, true);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, true);
 }
 
 //----------------------------------------------------------------------
@@ -227,7 +232,7 @@ static void encoder_dec_data_fun(void)
 
 static void encoder_hold_fun(void)
 {
-    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].envelop_generator_setting_id, false);
+    OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, false);
     Menu_set_main_encoder_callbacks();
 }
 

@@ -21,6 +21,7 @@
 #include "main.h"
 #include "dma.h"
 #include "i2s.h"
+#include "quadspi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -28,11 +29,14 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdfix.h>
 #include "string.h"
 #include "sin_gen.h"
 #include "utility.h"
 #include "synthcom.h"
 #include "IIR_generator.h"
+#include "flash_driver.h"
+#include "ext_flash_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,13 +72,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t buf[48000];
-
-int _write(int file, char *ptr, int len)
-{
-  HAL_UART_Transmit(&huart2, (uint8_t*)ptr++, len, 100);
-  return len;
-}
 
 /* USER CODE END 0 */
 
@@ -134,6 +131,7 @@ Error_Handler();
   MX_TIM17_Init();
   MX_TIM16_Init();
   MX_I2S1_Init();
+  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
   sin_gen_init();
   SynthCom_Init();
@@ -142,6 +140,14 @@ Error_Handler();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
+  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
+  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
+
+  HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
+
+  Flash_Write_Data(0x080E0000, 0x90000000, 24000U);
+
   while (1)
   {
     /* USER CODE END WHILE */

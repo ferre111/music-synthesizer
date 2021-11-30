@@ -14,17 +14,7 @@
 
 //----------------------------------------------------------------------
 
-#define TIME_BETWEEN_PAGE_CHANGE    500 //in ms
-#define GYRO_REG_VAL_TO_CHANGE_PAGE 15360
-
-//----------------------------------------------------------------------
-
-enum menu_axes
-{
-    x_axis,
-    y_axis,
-    z_axis
-};
+#define NUMBER_OF_LETTERS_IN_LINE 22U
 
 //----------------------------------------------------------------------
 
@@ -32,6 +22,8 @@ typedef enum menu_pages_T
 {
     Menu_pages_start,
 
+    OSC1_PAGE,
+    OSC2_PAGE,
     ENVELOPE_GENERATOR_PAGE,
 
     Menu_pages_end

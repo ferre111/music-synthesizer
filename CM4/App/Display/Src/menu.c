@@ -8,14 +8,19 @@
 #include "encoder.h"
 #include "buttons.h"
 #include "utility.h"
+
 #include "envelope_generator_page.h"
+#include "osc1_page.h"
+#include "osc2_page.h"
 
 //----------------------------------------------------------------------
 
 /* Array of structure with pointer to functions associate with appropriate page*/
 static page page_tab[Menu_pages_end] =
 {
-    [ENVELOPE_GENERATOR_PAGE]          = {.init_fun = envelope_generator_page_init, .draw_fun = envelope_generator_page_draw, .encoder_button_enter_press = envelope_generator_encoder_enter_press_fun, .exit_fun = envelope_generator_page_exit},
+    [OSC1_PAGE]                        = {.init_fun = Osc1_page_init, .draw_fun = Osc1_page_draw, .encoder_button_enter_press = Osc1_encoder_enter_press_fun, .exit_fun = Osc1_page_exit},
+    [OSC2_PAGE]                        = {.init_fun = Osc2_page_init, .draw_fun = Osc2_page_draw, .encoder_button_enter_press = Osc2_encoder_enter_press_fun, .exit_fun = Osc2_page_exit},
+    [ENVELOPE_GENERATOR_PAGE]          = {.init_fun = EnvelopeGenerator_page_init, .draw_fun = EnvelopeGenerator_page_draw, .encoder_button_enter_press = EnvelopeGenerator_encoder_enter_press_fun, .exit_fun = EnvelopeGenerator_page_exit},
 };
 
 static menu_ctx ctx = {.page = Menu_pages_start + 1, .page_tab = page_tab};

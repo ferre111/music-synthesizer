@@ -8,12 +8,9 @@
 #ifndef DISPLAY_INC_ENVELOPE_GENERATOR_PAGE_H_
 #define DISPLAY_INC_ENVELOPE_GENERATOR_PAGE_H_
 
-#include <stdio.h>
-#include "OLED.h"
-
-void envelope_generator_page_init(void);
-void envelope_generator_page_draw(void);
-void envelope_generator_encoder_enter_press_fun(void);
-void envelope_generator_page_exit(void);
+void EnvelopeGenerator_page_init(void);
+void EnvelopeGenerator_page_draw(void);
+void EnvelopeGenerator_encoder_enter_press_fun(void);
+void EnvelopeGenerator_page_exit(void);
 
 #endif /* DISPLAY_INC_ENVELOPE_GENERATOR_PAGE_H_ */
