@@ -5,15 +5,16 @@
  *      Author: Karol Witusik
  */
 
-#include "sin_gen.h"
+#include <string.h>
+#include <stdio.h>
+#include "synth.h"
 #include "utility.h"
-#include "string.h"
 #include "arm_math.h"
 #include "i2s.h"
+#include "wavetable.h"
+#include "usart.h" //todo
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
-
-#define VOICE_COUNT 10
 
 /* default envelop generator values */
 #warning THIS DEFINES MUST BE THE SAME AS IN THE FILE envelope_generator_page.c
@@ -27,7 +28,7 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* array with "voices", one voice - one wave (e.g. sine) on the output */
-static sin_gen_voice voices_tab[VOICE_COUNT] =
+static synth_voice voices_tab[VOICE_COUNT] =
 {
         [0] = {.voice_status = VOICE_STATUS_OFF},
         [1] = {.voice_status = VOICE_STATUS_OFF},
@@ -40,21 +41,6 @@ static sin_gen_voice voices_tab[VOICE_COUNT] =
         [8] = {.voice_status = VOICE_STATUS_OFF},
         [9] = {.voice_status = VOICE_STATUS_OFF}
 };
-
-static sin_gen ctx __attribute((section(".sin_gen_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_WAVETABLE};
-static sin_gen_envelop_generator eg_ctx;
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
-
-static void sin_gen_set_freq(sin_gen_voice* sin_gen_voice);
-static void sin_gen_update_envelop_generator_coef_update(void);
-static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice);
-static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_gen_voice);
-inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t value);
-static void sin_gen_wavetable(sin_gen_voice* sin_gen_voice);
-static void sin_gen_IIR(sin_gen_voice* sin_gen_voice);
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* Basic notes array */
 const static double note_freq[12] =
@@ -75,18 +61,33 @@ const static double note_freq[12] =
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_init(void)
+static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_WAVETABLE};
+static synth_envelop_generator eg_ctx;
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static void synth_set_freq(synth_voice* sin_gen_voice);
+static void synth_update_envelop_generator_coef_update(void);
+static double synth_envelope_generator(int16_t val, synth_voice* sin_gen_voice);
+static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice);
+inline static void synth_write_one_sample(uint32_t current_sample, int16_t value);
+static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
+static void synth_IIR_synthesis(synth_voice* sin_gen_voice);
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void Synth_init(void)
 {
     ctx.table_ptr = ctx.table;
 
-    sin_gen_set_envelop_generator(DEF_SUSTAIN_LEVEL, DEF_ATTACK_TIME, DEF_DECAY_TIME, DEF_RELEASE_TIME);
-    HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table_ptr, PACKED_SIZE * 2);
+    Synth_set_envelop_generator(DEF_SUSTAIN_LEVEL, DEF_ATTACK_TIME, DEF_DECAY_TIME, DEF_RELEASE_TIME);
+    HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)ctx.table, PACKED_SIZE * 2U);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_process(void)
-{
+void Synth_process(void)
+ {
     if (ctx.dma_flag)
     {
         utility_TimeMeasurmentsSetHigh();
@@ -110,19 +111,42 @@ void sin_gen_process(void)
             /* if voice status is different than Off then fill table */
             if (VOICE_STATUS_OFF != ctx.voices_tab[i].voice_status)
             {
-                switch(ctx.type_of_synth)
+                for (uint8_t j = 0U; j < OSCILLATOR_COUNTS; j++)
                 {
-                case TYPES_OF_SYNTH_WAVETABLE:
-                    sin_gen_wavetable(&ctx.voices_tab[i]);
-                    break;
-                case TYPES_OF_SYNTH_IIR:
-                    sin_gen_IIR(&ctx.voices_tab[i]);
-                    break;
-                case TYPES_OF_SYNTH_FM:
-                    break;
+                    if (ctx.osc[j].activated)
+                    {
+                        switch(ctx.type_of_synth)
+                        {
+                        case TYPES_OF_SYNTH_WAVETABLE:
+                            synth_wavetable_synthesis(&ctx.voices_tab[i], j);
+                            break;
+                        case TYPES_OF_SYNTH_IIR:
+                            synth_IIR_synthesis(&ctx.voices_tab[i]);
+                            break;
+                        case TYPES_OF_SYNTH_FM:
+                            break;
+                        }
+                    }
                 }
             }
         }
+//        static char str[10000];
+//        uint32_t index = 0;
+//        for (uint32_t i=0; i<PACKED_SIZE; i++)
+//        {
+//           index += snprintf(&str[index], 10000-index, "%d", ctx.table_ptr[i]);
+//           str[index + 1] = ',';
+//           index += 1;
+//        }
+//
+//        str[index + 1] = 'E';
+//        str[index + 2] = 'N';
+//        str[index + 3] = 'D';
+//        str[index + 4] = '\n';
+//        str[index + 5] = '\r';
+
+
+//        HAL_UART_Transmit_DMA(&huart2, str, index);
         /* Clean DCache after filling whole table */
 //        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
         ctx.dma_flag = false;
@@ -133,22 +157,33 @@ void sin_gen_process(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time)
+void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset)
+{
+    ctx.osc[oscillator].activated = activated;
+    ctx.osc[oscillator].shape = shape;
+    ctx.osc[oscillator].octave_offset = octave_offset;
+
+    Wavetable_load_new_wavetable(ctx.osc);
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void Synth_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time)
 {
     eg_ctx.sustain_level = sustain_level;
     eg_ctx.attack_time = attack_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
     eg_ctx.decay_time = decay_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
     eg_ctx.release_time = release_time * NUMBER_OF_SAMPLES_IN_MILISECOND;
 
-    sin_gen_update_envelop_generator_coef_update();
+    synth_update_envelop_generator_coef_update();
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity)
+void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity)
 {
     /* go through all voices */
-    for (uint8_t i = 0; i < VOICE_COUNT; i++)
+    for (uint8_t i = 0U; i < VOICE_COUNT; i++)
     {
         /* search for a free voice */
         if (VOICE_STATUS_OFF == ctx.voices_tab[i].voice_status)
@@ -160,7 +195,7 @@ void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity)
             /* set velocity */
             ctx.voices_tab[i].velocity = velocity;
             /* set other required variables */
-            sin_gen_set_freq(&ctx.voices_tab[i]);
+            synth_set_freq(&ctx.voices_tab[i]);
             /* if currently synthesis method is based on IIR filter then calculate required coefficients */
             if (TYPES_OF_SYNTH_IIR == ctx.type_of_synth)
             {
@@ -173,10 +208,10 @@ void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity)
 }
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_set_voice_stop_play(uint8_t key_number)
+void Synth_set_voice_stop_play(uint8_t key_number)
 {
     /* go through all voices */
-    for (uint8_t i = 0; i < VOICE_COUNT; i++)
+    for (uint8_t i = 0U; i < VOICE_COUNT; i++)
     {
         /* search for a voice with same key number as function argument, voice status can't be Off or Release */
         if (ctx.voices_tab[i].key_number == key_number && VOICE_STATUS_OFF != ctx.voices_tab[i].voice_status && VOICE_STATUS_RELEASE != ctx.voices_tab[i].voice_status)
@@ -217,17 +252,17 @@ void sin_gen_set_voice_stop_play(uint8_t key_number)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_set_freq(sin_gen_voice* sin_gen_voice)
+static void synth_set_freq(synth_voice* sin_gen_voice)
 {
-    uint8_t key_in_oct = sin_gen_voice->key_number % 12;
-    uint8_t octave = sin_gen_voice->key_number / 12;
+    uint8_t key_in_oct = sin_gen_voice->key_number % 12U;
+    uint8_t octave = sin_gen_voice->key_number / 12U;
 
-    sin_gen_voice->freq = note_freq[key_in_oct] * pow(2, octave);
+    sin_gen_voice->freq = note_freq[key_in_oct] * pow(2U, octave);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_update_envelop_generator_coef_update(void)
+static void synth_update_envelop_generator_coef_update(void)
 {
     eg_ctx.attack_coef = 1.0 / (double)eg_ctx.attack_time;
     eg_ctx.decay_coef = ((double)eg_ctx.sustain_level / 100.0 - 1.0) / (double)eg_ctx.decay_time;
@@ -238,39 +273,40 @@ static void sin_gen_update_envelop_generator_coef_update(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voice)
+static double synth_envelope_generator(int16_t val, synth_voice* voice)
 {
     double new_val = 0.0;
-    switch(sin_gen_voice->voice_status)
+
+    switch(voice->voice_status)
     {
         case VOICE_STATUS_ATTACK:
-            new_val = eg_ctx.attack_coef * (double)sin_gen_voice->attack_counter * (double)val;
+            new_val = eg_ctx.attack_coef * (double)voice->attack_counter * (double)val;
 
-            if (++sin_gen_voice->attack_counter == eg_ctx.attack_time)
+            if (++voice->attack_counter == eg_ctx.attack_time)
             {
-                sin_gen_voice->voice_status = VOICE_STATUS_DECAY;
-                sin_gen_voice->attack_counter = 0U;
+                voice->voice_status = VOICE_STATUS_DECAY;
+                voice->attack_counter = 0U;
             }
             break;
         case VOICE_STATUS_DECAY:
-            new_val = (eg_ctx.decay_coef * (double)sin_gen_voice->decay_counter + 1.0) * (double)val;
+            new_val = (eg_ctx.decay_coef * (double)voice->decay_counter + 1.0) * (double)val;
 
-            if (++sin_gen_voice->decay_counter == eg_ctx.decay_time)
+            if (++voice->decay_counter == eg_ctx.decay_time)
             {
-                sin_gen_voice->voice_status = VOICE_STATUS_SUSTAIN;
-                sin_gen_voice->decay_counter = 0U;
+                voice->voice_status = VOICE_STATUS_SUSTAIN;
+                voice->decay_counter = 0U;
             }
             break;
         case VOICE_STATUS_SUSTAIN:
             new_val = eg_ctx.sustain_coef * (double)val;
             break;
         case VOICE_STATUS_RELEASE:
-            new_val = (eg_ctx.release_coef * (double)sin_gen_voice->release_counter + eg_ctx.max_ampl_release_transition) * (double)val;
+            new_val = (eg_ctx.release_coef * (double)voice->release_counter + eg_ctx.max_ampl_release_transition) * (double)val;
 
-            if (++sin_gen_voice->release_counter == eg_ctx.release_time)
+            if (++voice->release_counter == eg_ctx.release_time)
             {
-                sin_gen_voice->voice_status = VOICE_STATUS_OFF;
-                sin_gen_voice->release_counter = 0U;
+                voice->voice_status = VOICE_STATUS_OFF;
+                voice->release_counter = 0U;
             }
             break;
         case VOICE_STATUS_OFF:
@@ -281,7 +317,7 @@ static double sin_gen_envelope_generator(int16_t val, sin_gen_voice* sin_gen_voi
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_gen_voice)
+static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice)
 {
     int16_t new_val = 0.0;
 
@@ -292,77 +328,83 @@ static int16_t sin_gen_velocity_and_voice_count(double val, sin_gen_voice* sin_g
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_wavetable(sin_gen_voice* sin_gen_voice)
+static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
 {
+    double freq;
+
+    /* calculate frequency with taking into account octave offset */
+    freq = sin_gen_voice->freq ;//* pow(2U, ctx.osc[osc_number].octave_offset);
+
     /* fill all samples in table */
     for (uint32_t table_current_sample = 0U; table_current_sample < PACKED_SIZE; table_current_sample += 2U)
     {
         /* write sample after envelope generator edit it */
-        sin_gen_write_one_sample(table_current_sample,
-                sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(wavetable[sin_gen_voice->current_sample], sin_gen_voice), sin_gen_voice));
+        synth_write_one_sample(table_current_sample,
+                synth_velocity_and_voice_count(synth_envelope_generator(wavetable_ram[osc_number][sin_gen_voice->current_sample[osc_number]], sin_gen_voice), sin_gen_voice));
 
         /* set next sample from wavetable */
-        sin_gen_voice->current_sample += (uint32_t)sin_gen_voice->freq;
+        sin_gen_voice->current_sample[osc_number] += (uint32_t)freq;
 
         /* check if current sample variable is bigger than wavetable length */
-        if (sin_gen_voice->current_sample > (SAMPLE_COUNT - 1U))
+        if (sin_gen_voice->current_sample[osc_number] >= SAMPLE_COUNT)
         {
             /* if so perform modulo */
-            sin_gen_voice->current_sample = sin_gen_voice->current_sample % SAMPLE_COUNT;
+            sin_gen_voice->current_sample[osc_number] = sin_gen_voice->current_sample[osc_number] % SAMPLE_COUNT;
         }
     }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void sin_gen_IIR(sin_gen_voice* sin_gen_voice)
+static void synth_IIR_synthesis(synth_voice* sin_gen_voice)
 {
-    for (uint32_t i = 0U; i < PACKED_SIZE; i += 2)
+    for (uint32_t i = 0U; i < PACKED_SIZE; i += 2U)
     {
-        sin_gen_write_one_sample(i, sin_gen_velocity_and_voice_count(sin_gen_envelope_generator(
-                (int16_t)(32767 * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice), sin_gen_voice));
+        synth_write_one_sample(i, synth_velocity_and_voice_count(synth_envelope_generator(
+                (int16_t)(32767U * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice), sin_gen_voice));
     }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* Since it is monophonic devices write same data to both channel */
-inline static void sin_gen_write_one_sample(uint32_t current_sample, int16_t value)
+inline static void synth_write_one_sample(uint32_t current_sample, int16_t value)
 {
     ctx.table_ptr[current_sample] += value;
-    ctx.table_ptr[current_sample + 1] += value;
+    ctx.table_ptr[current_sample + 1U] += value;
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    if (&hi2s1 == hi2s)
-    {
-        if (false == ctx.buff_ready)
-        {
-            utility_ErrLedOn();
-        }
+//    if (&hi2s1 == hi2s)
+//    {
+//        if (false == ctx.buff_ready)
+//        {
+//            utility_ErrLedOn();
+//        }
 
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;
-    }
+//    }
 }
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-    if (&hi2s1 == hi2s)
-    {
-        if (false == ctx.buff_ready)
-        {
-            utility_ErrLedOn();
-        }
+//    if (&hi2s1 == hi2s)
+//    {
+//        if (false == ctx.buff_ready)
+//        {
+//            utility_ErrLedOn();
+//        }
 
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;
-    }
+
+//    }
 }
 
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s)

@@ -133,6 +133,14 @@ bool SynthCom_process(void)
         case SYNTHCOM_MIDI_KEY_OFF:
             sin_gen_set_play(false, ((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
+        case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
+            sin_gen_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
+                    ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
+            break;
+        case SYNTHCOM_OSCILLATOR_DATA:
+            sin_gen_set_oscillator(((SynthComPacket_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_oscillator_data *)tmp_buffer)->activated,
+                    ((SynthComPacket_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_oscillator_data *)tmp_buffer)->octave_offset);
+            break;
 #endif
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:

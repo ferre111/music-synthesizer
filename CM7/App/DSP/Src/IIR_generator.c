@@ -6,9 +6,9 @@
  */
 
 #include <math.h>
+#include <synth.h>
 #include "arm_math.h"
 #include "IIR_generator.h"
-#include "sin_gen.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 

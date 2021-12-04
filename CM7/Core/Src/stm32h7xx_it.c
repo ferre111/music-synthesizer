@@ -60,6 +60,8 @@
 extern DMA_HandleTypeDef hdma_spi1_tx;
 extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
+extern DMA_HandleTypeDef hdma_usart2_tx;
+extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -217,16 +219,31 @@ void DMA1_Stream1_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles CM4 send event interrupt for CM7.
+  * @brief This function handles DMA1 stream2 global interrupt.
   */
-void CM4_SEV_IRQHandler(void)
+void DMA1_Stream2_IRQHandler(void)
 {
-  /* USER CODE BEGIN CM4_SEV_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
 
-  /* USER CODE END CM4_SEV_IRQn 0 */
-  /* USER CODE BEGIN CM4_SEV_IRQn 1 */
+  /* USER CODE END DMA1_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_tx);
+  /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
 
-  /* USER CODE END CM4_SEV_IRQn 1 */
+  /* USER CODE END DMA1_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART2 global interrupt.
+  */
+void USART2_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
 }
 
 /**

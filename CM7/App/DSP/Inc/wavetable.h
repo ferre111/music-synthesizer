@@ -5,15 +5,17 @@
  *      Author: Karol Witusik
  */
 
-#pragma once
+#ifndef __WAVETABLE_H
+#define __WAVETABLE_H
 
+#include <synth.h>
 #include "main.h"
+#include "DSP_basic_val.h"
 
-#define SAMPLE_COUNT 48000
+/*------------------------------------------------------------------------------------------------------------------------------*/
 
-const int16_t wavetable_sin[SAMPLE_COUNT];
-const int16_t wavetable_tri[SAMPLE_COUNT];
-const int16_t wavetable_sqr[SAMPLE_COUNT];
-int16_t *wavetable;
+int16_t wavetable_ram[OSCILLATOR_COUNTS][SAMPLE_COUNT];
 
-void button_click(void);
+void Wavetable_load_new_wavetable(synth_oscillator *osc);
+
+#endif

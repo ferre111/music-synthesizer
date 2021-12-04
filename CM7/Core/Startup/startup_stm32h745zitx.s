@@ -44,13 +44,13 @@ defined in linker script */
 .word  _sbss
 /* end address for the .bss section. defined in linker script */
 .word  _ebss
-/* start address for the initialization values of the .sin_gen_ctx section.
+/* start address for the initialization values of the .synth_ctx section.
 defined in linker script */
-.word  _sisin_gen_ctx
-/* start address for the .sin_gen_ctx section. defined in linker script */
-.word  _ssin_gen_ctx
-/* end address for the .sin_gen_ctx section. defined in linker script */
-.word  _esin_gen_ctx
+.word  _sisynth_ctx
+/* start address for the .synth_ctx section. defined in linker script */
+.word  _ssynth_ctx
+/* end address for the .synth_ctx section. defined in linker script */
+.word  _esynth_ctx
 /* start address for the .common_buffers section. defined in linker script */
 /* start address for the .message_counter_CM7_to_CM4 section. defined in linker script */
 .word _smessage_counter_CM7_to_CM4
@@ -112,21 +112,21 @@ LoopCopyDataInit:
   cmp r4, r1
   bcc CopyDataInit
 
-  ldr r0, =_ssin_gen_ctx
-  ldr r1, =_esin_gen_ctx
-  ldr r2, =_sisin_gen_ctx
+  ldr r0, =_ssynth_ctx
+  ldr r1, =_esynth_ctx
+  ldr r2, =_sisynth_ctx
   movs r3, #0
-  b LoopCopySinGenInit
+  b LoopCopySynthInit
 
-CopySinGenInit:
+CopySynthInit:
   ldr r4, [r2, r3]
   str r4, [r0, r3]
   adds r3, r3, #4
 
-LoopCopySinGenInit:
+LoopCopySynthInit:
   adds r4, r0, r3
   cmp r4, r1
-  bcc CopySinGenInit
+  bcc CopySynthInit
   /* Zero fill the bss segment. */
 
   ldr r2, =_sbss

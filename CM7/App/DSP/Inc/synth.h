@@ -8,15 +8,10 @@
 #ifndef __SIN_GEN_H
 #define __SIN_GEN_H
 
-#include "wavetable.h"
+#include <stdbool.h>
 #include "main.h"
-#include "stdbool.h"
 #include "IIR_generator.h"
-
-/*------------------------------------------------------------------------------------------------------------------------------*/
-
-/* size of data (in words) sends by one DMA transfer */
-#define PACKED_SIZE 48U
+#include "DSP_basic_val.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -54,11 +49,11 @@ typedef enum types_of_synth_T
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-typedef struct sin_gen_voice_T
+typedef struct synth_voice_T
 {
     voice_status voice_status;
     double freq;
-    uint32_t current_sample;
+    uint32_t current_sample[OSCILLATOR_COUNTS];
     uint8_t key_number;
     uint8_t velocity;
 
@@ -67,23 +62,17 @@ typedef struct sin_gen_voice_T
     uint32_t release_counter;
 
     IIR_generator IIR_generator;
-} sin_gen_voice;
+} synth_voice;
 
-typedef struct sin_gen_T
+typedef struct synth_oscillator_T
 {
-    /* if this flag is set sin_gen_process should fill buffer */
-    volatile bool dma_flag;
-    /* make one "double" array, with this we can use DMA in circular mode, and it is not required to again set transmission when whole buffer has been sent */
-    int16_t table[PACKED_SIZE * 2];
-    /* pointer to currently edited "virtual" buffer */
-    int16_t *table_ptr;
-    /* pointer to array with structures specifying actual playing waves */
-    sin_gen_voice *voices_tab;
-    /* with this flag we can check whether current "virtual" buffer has been filled */
-    volatile bool buff_ready;
-    /* determines type of actual synthesis method */
-    types_of_synth type_of_synth;
-} sin_gen;
+    /* determines whether oscillator is active */
+    uint8_t activated;
+    /* determines oscillator shape */
+    wavetable_shape shape;
+    /* determines octave offset */
+    uint8_t octave_offset;
+} synth_oscillator;
 
 /*
  *            /|\
@@ -100,7 +89,7 @@ typedef struct sin_gen_T
  *              Decay                  Release
  */
 
-typedef struct sin_gen_envelop_generator_T
+typedef struct synth_envelop_generator_T
 {
     /* sustain level, 100 - 100%, 50 - 50% */
     uint8_t sustain_level;
@@ -115,14 +104,34 @@ typedef struct sin_gen_envelop_generator_T
     double release_coef;
     /* max amplitude during transition to Release state, this maximal amplitude value results from a linear equation related with ADSR envelope generator */
     double max_ampl_release_transition;
-} sin_gen_envelop_generator;
+} synth_envelop_generator;
+
+typedef struct synth_T
+{
+    /* if this flag is set sin_gen_process should fill buffer */
+    volatile bool dma_flag;
+    /* make one "double" array, with this we can use DMA in circular mode, and it is not required to again set transmission when whole buffer has been sent */
+    int16_t table[PACKED_SIZE * 2];
+    /* pointer to currently edited "virtual" buffer */
+    int16_t *table_ptr;
+    /* pointer to array with structures specifying actual playing waves */
+    synth_voice *voices_tab;
+    /* with this flag we can check whether current "virtual" buffer has been filled */
+    volatile bool buff_ready;
+    /* array with structure describing oscillators */
+    synth_oscillator osc[OSCILLATOR_COUNTS];
+    /* determines type of actual synthesis method */
+    types_of_synth type_of_synth;
+} synth;
+
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void sin_gen_process(void);
-void sin_gen_init(void);
-void sin_gen_set_voice_start_play(uint8_t key_number, uint8_t velocity);
-void sin_gen_set_voice_stop_play(uint8_t key_number);
-void sin_gen_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
+void Synth_init(void);
+void Synth_process(void);
+void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity);
+void Synth_set_voice_stop_play(uint8_t key_number);
+void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset);
+void Synth_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
 
 #endif

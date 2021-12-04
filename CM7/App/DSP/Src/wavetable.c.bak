@@ -1,0 +1,10 @@
+/*
+ * wavetable.c
+ *
+ *  Created on: Jan 25, 2021
+ *      Author: Karol Witusik
+ // */
+#include "wavetable.h"
+ 
+const int16_t *wavetable = (int16_t*)0x080E0000; 
+int16_t wavetable_ram[48000] = {0};

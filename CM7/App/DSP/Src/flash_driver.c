@@ -222,7 +222,7 @@ uint32_t Flash_Write_Data (uint32_t StartSectorAddress, uint32_t *data, uint16_t
       /* Program the user Flash area 8 WORDS at a time
        * (area defined by FLASH_USER_START_ADDR and FLASH_USER_END_ADDR) ***********/
 
-       while (sofar<numberofwords)
+       while (sofar < numberofwords)
        {
          if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, StartSectorAddress, (uint32_t)&data[sofar]) == HAL_OK)
          {

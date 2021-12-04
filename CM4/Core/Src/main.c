@@ -136,12 +136,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 //  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
-//  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
+//  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0U);
+//  flash_save_wavetable(wavetable_tri, SAMPLE_COUNT, 48000U * 2U);
+//  flash_save_wavetable(wavetable_sqr, SAMPLE_COUNT, 48000U * 4U);
 //  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
-//
+////
 //  HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
-//
-//  int16_t *ptr = (int16_t*)0x90000000;
+//  Flash_Write_Data(0x080E0000U, 0x90000000U + 0U, 24000U);
   while (1)
   {
     /* USER CODE END WHILE */

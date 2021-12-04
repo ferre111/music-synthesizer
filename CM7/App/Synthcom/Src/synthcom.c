@@ -1,8 +1,8 @@
+#include <synth.h>
 #include "main.h"
 #include "synthcom.h"
 #include "ring_buffer.h"
 #include "utility.h"
-#include "sin_gen.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -130,13 +130,18 @@ bool SynthCom_process(void)
         {
 #ifdef CORE_CM7
         case SYNTHCOM_MIDI_KEY_ON:
-            sin_gen_set_voice_start_play(((SynthComPacket_midi_key_on *)tmp_buffer)->note_number, ((SynthComPacket_midi_key_on *)tmp_buffer)->velocity);
+            Synth_set_voice_start_play(((SynthComPacket_midi_key_on *)tmp_buffer)->note_number, ((SynthComPacket_midi_key_on *)tmp_buffer)->velocity);
             break;
         case SYNTHCOM_MIDI_KEY_OFF:
-            sin_gen_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
+            Synth_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
-            sin_gen_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
+            Synth_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
+                    ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
+            break;
+        case SYNTHCOM_OSCILLATOR_DATA:
+            Synth_set_oscillator(((SynthComPacket_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_oscillator_data *)tmp_buffer)->activated,
+                    ((SynthComPacket_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_oscillator_data *)tmp_buffer)->octave_offset);
             break;
 #endif
 #ifdef CORE_CM4

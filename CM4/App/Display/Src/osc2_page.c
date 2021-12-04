@@ -200,7 +200,8 @@ static void encoder_dec_browsing_fun(void)
 
 static void encoder_inc_data_fun(void)
 {
-    uint16_t data_tmp[Current_setting_end];
+    /* "+1U" this is due to the need to inform which oscillator it is about */
+    uint8_t data_tmp[Current_setting_end + 1U];
 
     if (ctx.settings_data[ctx.current_setting].max_value == ctx.settings_data[ctx.current_setting].data)
     {
@@ -211,18 +212,22 @@ static void encoder_inc_data_fun(void)
         ctx.settings_data[ctx.current_setting].data++;
     }
 
+    /* second oscillator */
+    data_tmp[0] = 1U;
     for (uint8_t i = 0U; i < Current_setting_end; i++)
     {
-        data_tmp[i] = ctx.settings_data[i].data;
+        data_tmp[i + 1U] = ctx.settings_data[i].data;
     }
-    //todo synthcom
+
+    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 static void encoder_dec_data_fun(void)
 {
-    uint16_t data_tmp[Current_setting_end];
+    /* "+1U" this is due to the need to inform which oscillator it is about */
+    uint8_t data_tmp[Current_setting_end + 1U];
 
     if (0U == ctx.settings_data[ctx.current_setting].data)
     {
@@ -233,11 +238,14 @@ static void encoder_dec_data_fun(void)
         ctx.settings_data[ctx.current_setting].data--;
     }
 
+    /* second oscillator */
+    data_tmp[0] = 1U;
     for (uint8_t i = 0U; i < Current_setting_end; i++)
     {
-        data_tmp[i] = ctx.settings_data[i].data;
+        data_tmp[i + 1U] = ctx.settings_data[i].data;
     }
-    //todo
+
+    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

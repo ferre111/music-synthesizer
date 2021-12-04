@@ -178,17 +178,17 @@ SECTIONS
   } >DTCMRAM
   
     /* Used by the startup to initialize data */
-  _sisin_gen_ctx = LOADADDR(.sin_gen_ctx);
+  _sisynth_ctx = LOADADDR(.synth_ctx);
   
-  .sin_gen_ctx :
+  .synth_ctx :
   {
   . = ALIGN(4);
-  _ssin_gen_ctx = .;
-  *(.sin_gen_ctx)
-  *(.sin_gen_ctx*)
+  _ssynth_ctx = .;
+  *(.synth_ctx)
+  *(.synth_ctx*)
   
   . = ALIGN(4);
-  _esin_gen_ctx = .;
+  _esynth_ctx = .;
 
   } >RAM_D2_SRAM_1 AT> FLASH
   

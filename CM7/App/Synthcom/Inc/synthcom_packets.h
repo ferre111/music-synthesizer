@@ -7,7 +7,8 @@
 #define PAYLOAD {                                           \
                     [SYNTHCOM_MIDI_KEY_ON] = 2U,            \
                     [SYNTHCOM_MIDI_KEY_OFF] = 2U,           \
-                    [SYNTHCOM_ENVELOPE_GENERATOR_DATA] = 8U \
+                    [SYNTHCOM_ENVELOPE_GENERATOR_DATA] = 8U,\
+                    [SYNTHCOM_OSCILLATOR_DATA] = 4U         \
                 }                                           \
 
 /* Possible packet types */
@@ -18,6 +19,7 @@ typedef enum SynthCom_PacketType_T
     SYNTHCOM_MIDI_KEY_ON,
     SYNTHCOM_MIDI_KEY_OFF,
     SYNTHCOM_ENVELOPE_GENERATOR_DATA,
+    SYNTHCOM_OSCILLATOR_DATA,
 
     SynthCom_PacketType_end
 } SynthCom_PacketType;
@@ -47,5 +49,15 @@ typedef struct SynthComPacket_envelope_generator_data_T
 } SynthComPacket_envelope_generator_data;
 /* static assertion to check that the structure is indeed packed */
 static_assert(8U == sizeof(SynthComPacket_envelope_generator_data), "8U != sizeof(SynthComPacket_envelope_generator_data)");
+
+typedef struct SynthComPacket_oscillator_data_T
+{
+    uint8_t oscillator;
+    uint8_t activated;
+    uint8_t shape;
+    uint8_t octave_offset;
+} SynthComPacket_oscillator_data;
+/* static assertion to check that the structure is indeed packed */
+static_assert(4U == sizeof(SynthComPacket_oscillator_data), "4U != sizeof(SynthComPacket_oscillator_data)");
 
 #endif /* AMCOM_PACKETS_H_ */

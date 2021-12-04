@@ -325,9 +325,7 @@ QSPI_CommandTypeDef cmd_CER = {
 
 void flash_save_wavetable(const int16_t *ptr, uint32_t len, uint32_t address)
 {
-    HAL_StatusTypeDef tmp; // todo
-
-    tmp = HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
+    HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
 
     enable_quad_write();
 
@@ -342,9 +340,9 @@ void flash_save_wavetable(const int16_t *ptr, uint32_t len, uint32_t address)
 
         check_memory_busy();
 
-        tmp = HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
-        tmp = HAL_QSPI_Command(&hqspi, &cmd_PPQ, TIMEOUT);   //enable data write
-        tmp = HAL_QSPI_Transmit(&hqspi, (uint8_t *)ptr, TIMEOUT);
+        HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
+        HAL_QSPI_Command(&hqspi, &cmd_PPQ, TIMEOUT);   //enable data write
+        HAL_QSPI_Transmit(&hqspi, (uint8_t *)ptr, TIMEOUT);
     }
     else
     {
@@ -363,9 +361,9 @@ void flash_save_wavetable(const int16_t *ptr, uint32_t len, uint32_t address)
 
             check_memory_busy();
 
-            tmp = HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
-            tmp = HAL_QSPI_Command(&hqspi, &cmd_PPQ, TIMEOUT);    //write data block
-            tmp = HAL_QSPI_Transmit(&hqspi, (uint8_t *)(ptr) + tmp_len, TIMEOUT);
+            HAL_QSPI_Command(&hqspi, &cmd_WREN, TIMEOUT);   //enable data write
+            HAL_QSPI_Command(&hqspi, &cmd_PPQ, TIMEOUT);    //write data block
+            HAL_QSPI_Transmit(&hqspi, (uint8_t *)(ptr) + tmp_len, TIMEOUT);
 
             tmp_len += block_len;
         }
@@ -393,12 +391,11 @@ void flash_read_wavetable(int16_t *ptr, uint32_t len, uint32_t address)
 static void check_memory_busy(void)
 {
     uint8_t tmp_data = 0U;
-    HAL_StatusTypeDef tmp; // todo
 
     do
     {
-        tmp = HAL_QSPI_Command(&hqspi, &cmd_RDSR, TIMEOUT);
-        tmp = HAL_QSPI_Receive(&hqspi, &tmp_data, TIMEOUT);
+        HAL_QSPI_Command(&hqspi, &cmd_RDSR, TIMEOUT);
+        HAL_QSPI_Receive(&hqspi, &tmp_data, TIMEOUT);
     } while(tmp_data & 0x01);
 }
 
@@ -406,9 +403,8 @@ static void check_memory_busy(void)
 
 static void enable_quad_write(void)
 {
-    HAL_StatusTypeDef tmp; // todo
     uint8_t tmp_data = 0x40;
 
-    tmp = HAL_QSPI_Command(&hqspi, &cmd_WRSR, TIMEOUT);
-    tmp = HAL_QSPI_Transmit(&hqspi, &tmp_data, TIMEOUT);
+    HAL_QSPI_Command(&hqspi, &cmd_WRSR, TIMEOUT);
+    HAL_QSPI_Transmit(&hqspi, &tmp_data, TIMEOUT);
 }

@@ -30,8 +30,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdfix.h>
-#include "string.h"
-#include "sin_gen.h"
+#include <string.h>
+#include "synth.h"
 #include "utility.h"
 #include "synthcom.h"
 #include "IIR_generator.h"
@@ -133,27 +133,29 @@ Error_Handler();
   MX_I2S1_Init();
   MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
-  sin_gen_init();
+  Synth_init();
   SynthCom_Init();
   HAL_TIM_Base_Start_IT(&htim16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
-  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
-  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
+//  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
+//  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
 
+  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
   HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
 
-  Flash_Write_Data(0x080E0000, 0x90000000, 24000U);
+  Synth_set_oscillator(0, 1, 0, 0);
 
+  static char tmpp[20] = "test\n";
+//  printf(tmpp);
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      sin_gen_process();
+      Synth_process();
       SynthCom_process();
   }
   /* USER CODE END 3 */
@@ -188,8 +190,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 2;
   RCC_OscInitStruct.PLL.PLLN = 200;
-  RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 5;
+  RCC_OscInitStruct.PLL.PLLP = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 16;
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -211,7 +213,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
