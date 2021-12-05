@@ -36,7 +36,7 @@ static char activated_txt[2][NUMBER_OF_LETTERS_IN_LINE] =
 static char shape_txt[3][NUMBER_OF_LETTERS_IN_LINE] =
 {
         "sine",
-        "rectangle",
+        "square",
         "triangle",
 };
 

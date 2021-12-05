@@ -12,7 +12,6 @@
 #include "arm_math.h"
 #include "i2s.h"
 #include "wavetable.h"
-#include "usart.h" //todo
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -103,7 +102,7 @@ void Synth_process(void)
         }
 
         /* clear table, multiple by two due to uint16_t */
-        memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
+        memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U); //todo
 
         /* go through all voices */
         for (uint8_t i = 0U; i < VOICE_COUNT; i++)
@@ -130,23 +129,6 @@ void Synth_process(void)
                 }
             }
         }
-//        static char str[10000];
-//        uint32_t index = 0;
-//        for (uint32_t i=0; i<PACKED_SIZE; i++)
-//        {
-//           index += snprintf(&str[index], 10000-index, "%d", ctx.table_ptr[i]);
-//           str[index + 1] = ',';
-//           index += 1;
-//        }
-//
-//        str[index + 1] = 'E';
-//        str[index + 2] = 'N';
-//        str[index + 3] = 'D';
-//        str[index + 4] = '\n';
-//        str[index + 5] = '\r';
-
-
-//        HAL_UART_Transmit_DMA(&huart2, str, index);
         /* Clean DCache after filling whole table */
 //        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
         ctx.dma_flag = false;
@@ -378,33 +360,32 @@ inline static void synth_write_one_sample(uint32_t current_sample, int16_t value
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-//    if (&hi2s1 == hi2s)
-//    {
-//        if (false == ctx.buff_ready)
-//        {
-//            utility_ErrLedOn();
-//        }
+    if (&hi2s1 == hi2s)
+    {
+        if (false == ctx.buff_ready)
+        {
+            utility_ErrLedOn();
+        }
 
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;
-//    }
+    }
 }
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-//    if (&hi2s1 == hi2s)
-//    {
-//        if (false == ctx.buff_ready)
-//        {
-//            utility_ErrLedOn();
-//        }
+    if (&hi2s1 == hi2s)
+    {
+        if (false == ctx.buff_ready)
+        {
+            utility_ErrLedOn();
+        }
 
         /* we need to change and fill buffer twice in one DMA transmission */
         ctx.dma_flag = true;
         ctx.buff_ready = false;
-
-//    }
+    }
 }
 
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s)

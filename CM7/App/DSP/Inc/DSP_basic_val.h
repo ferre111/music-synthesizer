@@ -22,7 +22,7 @@
 typedef enum wavetable_shape_T
 {
     WAVETABLE_SHAPE_SINE,
-    WAVETABLE_SHAPE_RECTANGLE,
+    WAVETABLE_SHAPE_SQUARE,
     WAVETABLE_SHAPE_TRIANGLE,
 
     Wavetable_shape_end
