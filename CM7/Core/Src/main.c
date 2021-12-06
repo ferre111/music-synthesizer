@@ -21,6 +21,7 @@
 #include "main.h"
 #include "dma.h"
 #include "i2s.h"
+#include "quadspi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -34,8 +35,7 @@
 #include "utility.h"
 #include "synthcom.h"
 #include "IIR_generator.h"
-#include "flash_driver.h"
-#include "ext_flash_driver.h"
+#include "wavetable.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,7 +65,6 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -102,9 +101,6 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-
-/* Configure the peripherals common clocks */
-  PeriphCommonClock_Config();
 /* USER CODE BEGIN Boot_Mode_Sequence_2 */
 /* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of
 HSEM notification */
@@ -134,25 +130,19 @@ Error_Handler();
   MX_TIM17_Init();
   MX_TIM16_Init();
   MX_I2S1_Init();
+  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
   Synth_init();
   SynthCom_Init();
+  Wavetable_init();
   HAL_TIM_Base_Start_IT(&htim16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  HAL_QSPI_Command(&hqspi, &cmd_WREN, 100);
-//  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
-//  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, 0);
-
-//  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
-//  HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
 
   Synth_set_oscillator(0, 1, 0, 0);
 
-  static char tmpp[20] = "test\n";
-//  printf(tmpp);
   while (1)
   {
     /* USER CODE END WHILE */
