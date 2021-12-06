@@ -17,7 +17,7 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 #define MAX_ACTIVATED       1U
-#define MAX_SHAPE           2U
+#define MAX_SHAPE           3U
 #define MAX_OCTAVE_OFFSET   4U
 
 #define DEF_ACTIVATED       1U
@@ -33,11 +33,12 @@ static char activated_txt[2][NUMBER_OF_LETTERS_IN_LINE] =
 };
 
 
-static char shape_txt[3][NUMBER_OF_LETTERS_IN_LINE] =
+static char shape_txt[4][NUMBER_OF_LETTERS_IN_LINE] =
 {
         "sine",
         "square",
         "triangle",
+        "saw"
 };
 
 static char octave_offset_txt[5][NUMBER_OF_LETTERS_IN_LINE] =

@@ -24,6 +24,7 @@ typedef enum wavetable_shape_T
     WAVETABLE_SHAPE_SINE,
     WAVETABLE_SHAPE_SQUARE,
     WAVETABLE_SHAPE_TRIANGLE,
+    WAVETABLE_SHAPE_SAW,
 
     Wavetable_shape_end
 } wavetable_shape;

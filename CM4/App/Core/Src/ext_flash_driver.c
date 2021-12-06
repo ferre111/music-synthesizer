@@ -359,7 +359,7 @@ void flash_save_wavetable(const int16_t *ptr, uint32_t len, uint32_t address)
                 block_len = (len - tmp_len) % MAX_DATA_TO_SAVE_PPQ;
             }
             cmd_PPQ.NbData = block_len;
-            cmd_PPQ.Address = tmp_len + address * 2;
+            cmd_PPQ.Address = tmp_len + address * 2U;
 
             check_memory_busy();
 

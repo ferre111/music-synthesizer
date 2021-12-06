@@ -10,6 +10,8 @@
 
 void utility_ErrLedOn(void);
 void utility_ErrLedOff(void);
+void utility_LoadLedOn(void);
+void utility_LoadLedOff(void);
 void utility_TimeMeasurmentsSetHigh(void);
 void utility_TimeMeasurmentsSetLow(void);
 void utility_TimeMeasurmentsToggle(void);

@@ -40,7 +40,7 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(DTCMRAM) + LENGTH(DTCMRAM); /* end of "RAM_D1" Ram type memory */
 
 _Min_Heap_Size = 0x200 ; /* required amount of heap  */
-_Min_Stack_Size = 0x4000 ; /* required amount of stack */
+_Min_Stack_Size = 0x8000 ; /* required amount of stack */
 
 /* Memories definition */
 MEMORY
