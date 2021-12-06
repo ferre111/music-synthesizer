@@ -33,6 +33,20 @@ void utility_ErrLedOff(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
+void utility_LoadLedOn(void)
+{
+    HAL_GPIO_WritePin(LOAD_LED_GPIO_Port, LOAD_LED_Pin, 1U);
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void utility_LoadLedOff(void)
+{
+    HAL_GPIO_WritePin(LOAD_LED_GPIO_Port, LOAD_LED_Pin, 0U);
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 void utility_TimeMeasurmentsSetHigh(void)
 {
     HAL_GPIO_WritePin(TIME_MEASURMENT_GPIO_Port, TIME_MEASURMENT_Pin, 1U);
