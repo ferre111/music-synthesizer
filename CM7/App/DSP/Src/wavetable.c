@@ -10,6 +10,7 @@
 #include "DSP_basic_val.h"
 #include "i2s.h"
 #include "utility.h"
+#include "ext_flash_driver.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -28,6 +29,14 @@ static uint32_t wavetable_shape_offset[Wavetable_shape_end] =
         [WAVETABLE_SHAPE_TRIANGLE]  = SAMPLE_COUNT * 4U,
         [WAVETABLE_SHAPE_SAW]       = SAMPLE_COUNT * 6U
 };
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void Wavetable_init(void)
+{
+    QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
+    HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
+}
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 

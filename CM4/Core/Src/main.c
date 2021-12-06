@@ -20,7 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
-#include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
 #include "usb_host.h"
@@ -36,9 +35,6 @@
 #include "utility.h"
 #include "buttons.h"
 #include "menu.h"
-#include "flash_driver.h"
-#include "ext_flash_driver.h"
-#include "wavetable.h" //todo
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,11 +68,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int _write(int file, char *ptr, int len)
-{
- // HAL_UART_Transmit(&huart2, (uint8_t*)ptr++, len, 100);
-  return len;
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -124,7 +116,6 @@ int main(void)
   MX_USB_HOST_Init();
   MX_SPI2_Init();
   MX_TIM4_Init();
-  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
   SynthCom_Init();
   OLED_Init();
@@ -136,19 +127,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  HAL_QSPI_Command(&hqspi, &cmd_WREN, 100);
-  HAL_QSPI_Command(&hqspi, &cmd_CER, 100);
-  flash_save_wavetable(wavetable_sin, SAMPLE_COUNT, SAMPLE_COUNT * 0U);
-  flash_save_wavetable(wavetable_sqr, SAMPLE_COUNT, SAMPLE_COUNT * 1U);
-  flash_save_wavetable(wavetable_tri, SAMPLE_COUNT, SAMPLE_COUNT * 2U);
-  flash_save_wavetable(wavetable_saw, SAMPLE_COUNT, SAMPLE_COUNT * 3U);
-
-  QSPI_MemoryMappedTypeDef tmp = { .TimeOutActivation = QSPI_TIMEOUT_COUNTER_DISABLE, .TimeOutPeriod = 0xFFFF };
-  HAL_QSPI_MemoryMapped(&hqspi, &cmd_FRQIO, &tmp);
-
-
-  //Flash_Write_Data(0x080E0000U, 0x90000000U + 0U, 24000U);
   while (1)
   {
     /* USER CODE END WHILE */
