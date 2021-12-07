@@ -17,6 +17,8 @@
 /* wavetable sample count */
 #define SAMPLE_COUNT 48000U
 
+#define MAX_OSCILLATOR_VOLUME 100
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 typedef enum wavetable_shape_T

@@ -18,10 +18,12 @@
 #define MAX_ACTIVATED       1U
 #define MAX_SHAPE           3U
 #define MAX_OCTAVE_OFFSET   4U
+#define MAX_VOLUME          100U
 
 #define DEF_ACTIVATED       1U
 #define DEF_SHAPE           0U
 #define DEF_OCTAVE_OFFSET   2U
+#define DEF_VOLUME          100U
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -56,6 +58,7 @@ typedef enum current_setting_T
     CURRENT_SETTING_ACTIVATED,
     CURRENT_SETTING_SHAPE,
     CURRENT_SETTING_OCTAVE_OFFSET,
+    CURRENT_SETTING_VOLUME,
 
     Current_setting_end
 } current_setting;
@@ -84,6 +87,7 @@ static osc1_page ctx = {.current_setting = CURRENT_SETTING_ACTIVATED,
                                            [CURRENT_SETTING_ACTIVATED] = {.max_value = MAX_ACTIVATED, .data = DEF_ACTIVATED},
                                            [CURRENT_SETTING_SHAPE] = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
                                            [CURRENT_SETTING_OCTAVE_OFFSET] = {.max_value = MAX_OCTAVE_OFFSET, .data = DEF_OCTAVE_OFFSET},
+                                           [CURRENT_SETTING_VOLUME] = {.max_value = MAX_VOLUME, .data = DEF_VOLUME}
                                        }
 };
 
@@ -105,6 +109,7 @@ void Osc1_page_init(void)
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_id, 0U, 16U, ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_SHAPE].setting_id, 0U, 24U, ctx.settings_data[CURRENT_SETTING_SHAPE].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_id, 0U, 32U, ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id, 0U, 40U, ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, 1U, false);
     snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "OSC 1");
 }
 
@@ -114,6 +119,7 @@ void Osc1_page_draw(void)
     snprintf(ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Activated: %*s", 10U, activated_txt[ctx.settings_data[CURRENT_SETTING_ACTIVATED].data]);
     snprintf(ctx.settings_data[CURRENT_SETTING_SHAPE].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Shape: %*s", 14U, shape_txt[ctx.settings_data[CURRENT_SETTING_SHAPE].data]);
     snprintf(ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Octave offset: %*s", 6U, octave_offset_txt[ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].data]);
+    snprintf(ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Volume: %*u", 13U, ctx.settings_data[CURRENT_SETTING_VOLUME].data);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -136,6 +142,7 @@ void Osc1_page_exit(void)
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_id);
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_SHAPE].setting_id);
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -167,7 +174,7 @@ static void encoder_inc_browsing_fun(void)
 {
     OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, false);
 
-    if (CURRENT_SETTING_OCTAVE_OFFSET == ctx.current_setting)
+    if (Current_setting_end - 1U == ctx.current_setting)
     {
         ctx.current_setting = CURRENT_SETTING_ACTIVATED;
     }
@@ -187,7 +194,7 @@ static void encoder_dec_browsing_fun(void)
 
     if (CURRENT_SETTING_ACTIVATED == ctx.current_setting)
     {
-        ctx.current_setting = CURRENT_SETTING_OCTAVE_OFFSET;
+        ctx.current_setting = Current_setting_end - 1U;
     }
     else
     {
@@ -220,7 +227,7 @@ static void encoder_inc_data_fun(void)
         data_tmp[i + 1U] = ctx.settings_data[i].data;
     }
 
-    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
+    SynthCom_transmit(SYNTHCOM_FIRST_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -246,7 +253,7 @@ static void encoder_dec_data_fun(void)
         data_tmp[i + 1U] = ctx.settings_data[i].data;
     }
 
-    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
+    SynthCom_transmit(SYNTHCOM_FIRST_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

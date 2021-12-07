@@ -139,15 +139,23 @@ bool SynthCom_process(void)
             Synth_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
                     ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
             break;
-        case SYNTHCOM_OSCILLATOR_DATA:
-            Synth_set_oscillator(((SynthComPacket_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_oscillator_data *)tmp_buffer)->activated,
-                    ((SynthComPacket_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_oscillator_data *)tmp_buffer)->octave_offset);
+        case SYNTHCOM_FIRST_OSCILLATOR_DATA:
+            Synth_set_oscillator(((SynthComPacket_first_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_first_oscillator_data *)tmp_buffer)->activated,
+                    ((SynthComPacket_first_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_first_oscillator_data *)tmp_buffer)->octave_offset,
+                    0U, ((SynthComPacket_first_oscillator_data *)tmp_buffer)->volume);
+            break;
+        case SYNTHCOM_OTHER_OSCILLATOR_DATA:
+            Synth_set_oscillator(((SynthComPacket_other_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_other_oscillator_data *)tmp_buffer)->activated,
+                                ((SynthComPacket_other_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_other_oscillator_data *)tmp_buffer)->octave_offset,
+                                ((SynthComPacket_other_oscillator_data *)tmp_buffer)->phase, ((SynthComPacket_other_oscillator_data *)tmp_buffer)->volume);
             break;
 #endif
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:
         case SYNTHCOM_MIDI_KEY_OFF:
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
+        case SYNTHCOM_FIRST_OSCILLATOR_DATA:
+        case SYNTHCOM_OTHER_OSCILLATOR_DATA:
 #endif
         default:
             utility_ErrLedOn();

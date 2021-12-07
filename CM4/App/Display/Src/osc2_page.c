@@ -18,10 +18,15 @@
 #define MAX_ACTIVATED       1U
 #define MAX_SHAPE           3U
 #define MAX_OCTAVE_OFFSET   4U
+#define MAX_PHASE           359U
+#define MAX_VOLUME          100U
 
 #define DEF_ACTIVATED       0U
 #define DEF_SHAPE           0U
 #define DEF_OCTAVE_OFFSET   2U
+#define DEF_PHASE           0U
+#define DEF_VOLUME          100U
+
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -56,6 +61,8 @@ typedef enum current_setting_T
     CURRENT_SETTING_ACTIVATED,
     CURRENT_SETTING_SHAPE,
     CURRENT_SETTING_OCTAVE_OFFSET,
+    CURRENT_SETTING_PHASE,
+    CURRENT_SETTING_VOLUME,
 
     Current_setting_end
 } current_setting;
@@ -84,6 +91,8 @@ static osc2_page ctx = {.current_setting = CURRENT_SETTING_ACTIVATED,
                                            [CURRENT_SETTING_ACTIVATED] = {.max_value = MAX_ACTIVATED, .data = DEF_ACTIVATED},
                                            [CURRENT_SETTING_SHAPE] = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
                                            [CURRENT_SETTING_OCTAVE_OFFSET] = {.max_value = MAX_OCTAVE_OFFSET, .data = DEF_OCTAVE_OFFSET},
+                                           [CURRENT_SETTING_PHASE] = {.max_value = MAX_PHASE, .data = DEF_PHASE},
+                                           [CURRENT_SETTING_VOLUME] = {.max_value = MAX_VOLUME, .data = DEF_VOLUME}
                                        }
 };
 
@@ -105,6 +114,8 @@ void Osc2_page_init(void)
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_id, 0U, 16U, ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_SHAPE].setting_id, 0U, 24U, ctx.settings_data[CURRENT_SETTING_SHAPE].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_id, 0U, 32U, ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_PHASE].setting_id, 0U, 40U, ctx.settings_data[CURRENT_SETTING_PHASE].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id, 0U, 48U, ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, 1U, false);
     snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "OSC 2");
 }
 
@@ -114,6 +125,8 @@ void Osc2_page_draw(void)
     snprintf(ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Activated: %*s", 10U, activated_txt[ctx.settings_data[CURRENT_SETTING_ACTIVATED].data]);
     snprintf(ctx.settings_data[CURRENT_SETTING_SHAPE].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Shape: %*s", 14U, shape_txt[ctx.settings_data[CURRENT_SETTING_SHAPE].data]);
     snprintf(ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Octave offset: %*s", 6U, octave_offset_txt[ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].data]);
+    snprintf(ctx.settings_data[CURRENT_SETTING_PHASE].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Phase: %*u", 14U, ctx.settings_data[CURRENT_SETTING_PHASE].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Volume: %*u", 13U, ctx.settings_data[CURRENT_SETTING_VOLUME].data);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -136,6 +149,8 @@ void Osc2_page_exit(void)
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_ACTIVATED].setting_id);
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_SHAPE].setting_id);
     OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_OCTAVE_OFFSET].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_PHASE].setting_id);
+    OLED_deleteObject(ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -167,7 +182,7 @@ static void encoder_inc_browsing_fun(void)
 {
     OLED_textFieldSetReverse(ctx.settings_data[ctx.current_setting].setting_id, false);
 
-    if (CURRENT_SETTING_OCTAVE_OFFSET == ctx.current_setting)
+    if (Current_setting_end - 1U == ctx.current_setting)
     {
         ctx.current_setting = CURRENT_SETTING_ACTIVATED;
     }
@@ -187,7 +202,7 @@ static void encoder_dec_browsing_fun(void)
 
     if (CURRENT_SETTING_ACTIVATED == ctx.current_setting)
     {
-        ctx.current_setting = CURRENT_SETTING_OCTAVE_OFFSET;
+        ctx.current_setting = Current_setting_end - 1U;
     }
     else
     {
@@ -201,8 +216,8 @@ static void encoder_dec_browsing_fun(void)
 
 static void encoder_inc_data_fun(void)
 {
-    /* "+1U" this is due to the need to inform which oscillator it is about */
-    uint8_t data_tmp[Current_setting_end + 1U];
+    /* "+2U" this is due to the need to inform which oscillator it is about and fit uint16_t phase data*/
+    uint8_t data_tmp[Current_setting_end + 2U];
 
     if (ctx.settings_data[ctx.current_setting].max_value == ctx.settings_data[ctx.current_setting].data)
     {
@@ -215,20 +230,33 @@ static void encoder_inc_data_fun(void)
 
     /* second oscillator */
     data_tmp[0] = 1U;
-    for (uint8_t i = 0U; i < Current_setting_end; i++)
+    /* write settings value */
+    for (uint8_t i = 1U, j = 0U; j < Current_setting_end; j++)
     {
-        data_tmp[i + 1U] = ctx.settings_data[i].data;
+        if (CURRENT_SETTING_PHASE == j)
+        {
+            /* set phase value */
+            data_tmp[i] = (uint8_t)ctx.settings_data[CURRENT_SETTING_PHASE].data;
+            i++;
+            data_tmp[i] = *((uint8_t*)&ctx.settings_data[CURRENT_SETTING_PHASE].data + 1U);
+            i++;
+        }
+        else
+        {
+            data_tmp[i] = ctx.settings_data[j].data;
+            i++;
+        }
     }
 
-    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
+    SynthCom_transmit(SYNTHCOM_OTHER_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 static void encoder_dec_data_fun(void)
 {
-    /* "+1U" this is due to the need to inform which oscillator it is about */
-    uint8_t data_tmp[Current_setting_end + 1U];
+    /* "+2U" this is due to the need to inform which oscillator it is about and fit uint16_t phase data*/
+    uint8_t data_tmp[Current_setting_end + 2U];
 
     if (0U == ctx.settings_data[ctx.current_setting].data)
     {
@@ -241,12 +269,25 @@ static void encoder_dec_data_fun(void)
 
     /* second oscillator */
     data_tmp[0] = 1U;
-    for (uint8_t i = 0U; i < Current_setting_end; i++)
+    /* write settings value */
+    for (uint8_t i = 1U, j = 0U; j < Current_setting_end; j++)
     {
-        data_tmp[i + 1U] = ctx.settings_data[i].data;
+        if (CURRENT_SETTING_PHASE == j)
+        {
+            /* set phase value */
+            data_tmp[i] = (uint8_t)ctx.settings_data[CURRENT_SETTING_PHASE].data;
+            i++;
+            data_tmp[i] = *((uint8_t*)&ctx.settings_data[CURRENT_SETTING_PHASE].data + 1U);
+            i++;
+        }
+        else
+        {
+            data_tmp[i] = ctx.settings_data[j].data;
+            i++;
+        }
     }
 
-    SynthCom_transmit(SYNTHCOM_OSCILLATOR_DATA, data_tmp);
+    SynthCom_transmit(SYNTHCOM_OTHER_OSCILLATOR_DATA, data_tmp);
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

@@ -145,7 +145,7 @@ Error_Handler();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  Synth_set_oscillator(0, 1, 0, 0);
+  Synth_set_oscillator(0, 1, 0, 2, 0, 100);
 
   while (1)
   {

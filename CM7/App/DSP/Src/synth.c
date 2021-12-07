@@ -24,6 +24,9 @@
 
 #define NUMBER_OF_SAMPLES_IN_MILISECOND 48U
 
+/* this value results from the mechanics of how the GUI works */
+#define OSC_OFFSET_COEF 2U
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 /* array with "voices", one voice - one wave (e.g. sine) on the output */
@@ -139,11 +142,28 @@ void Synth_process(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset)
+void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset, uint16_t phase, uint8_t volume)
 {
     ctx.osc[oscillator].activated = activated;
     ctx.osc[oscillator].shape = shape;
     ctx.osc[oscillator].octave_offset = octave_offset;
+    ctx.osc[oscillator].phase = phase;
+    ctx.osc[oscillator].volume = volume;
+
+    for (uint32_t voice = 0U; voice < VOICE_COUNT; voice++)
+    {
+        if (ctx.voices_tab[voice].voice_status != VOICE_STATUS_OFF)
+        {
+            /* recalculate voice frequencies (they could be different due to octave offset change) */
+            synth_set_freq(&ctx.voices_tab[voice]);
+        }
+        /* set current sample to ensure correct phase between oscillators,  */
+        ctx.voices_tab[voice].current_sample[0] = 0;
+        for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
+        {
+            ctx.voices_tab[voice].current_sample[osc] = ctx.osc[osc].phase * SAMPLE_COUNT / 360U;
+        }
+    }
 
     Wavetable_load_new_wavetable(ctx.osc);
 }
@@ -181,7 +201,7 @@ void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity)
             /* if currently synthesis method is based on IIR filter then calculate required coefficients */
             if (TYPES_OF_SYNTH_IIR == ctx.type_of_synth)
             {
-                IIR_generator_compute_coef(&ctx.voices_tab[i].IIR_generator, ctx.voices_tab[i].freq);
+//                IIR_generator_compute_coef(&ctx.voices_tab[i].IIR_generator, ctx.voices_tab[i].freq); //todo
             }
             /* return from function */
             return;
@@ -236,10 +256,21 @@ void Synth_set_voice_stop_play(uint8_t key_number)
 
 static void synth_set_freq(synth_voice* sin_gen_voice)
 {
-    uint8_t key_in_oct = sin_gen_voice->key_number % 12U;
-    uint8_t octave = sin_gen_voice->key_number / 12U;
+    uint8_t key_in_oct = 0U;
+    int8_t octave = 0U;
 
-    sin_gen_voice->freq = note_freq[key_in_oct] * pow(2U, octave);
+    key_in_oct = sin_gen_voice->key_number % 12U;
+
+    for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
+    {
+        octave = sin_gen_voice->key_number / 12U + ctx.osc[osc].octave_offset - OSC_OFFSET_COEF;
+
+        if (0U > octave)
+        {
+            octave = 0U;
+        }
+        sin_gen_voice->freq[osc] = note_freq[key_in_oct] * pow(2U, octave);
+    }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -303,7 +334,7 @@ static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_v
 {
     int16_t new_val = 0.0;
 
-    new_val = (int16_t)((val * sin_gen_voice->velocity) / (255.0 * (double)VOICE_COUNT));
+    new_val = (int16_t)((val * sin_gen_voice->velocity) / 255.0);
 
     return new_val;
 }
@@ -312,11 +343,6 @@ static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_v
 
 static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
 {
-    double freq;
-
-    /* calculate frequency with taking into account octave offset */
-    freq = sin_gen_voice->freq ;//* pow(2U, ctx.osc[osc_number].octave_offset);
-
     /* fill all samples in table */
     for (uint32_t table_current_sample = 0U; table_current_sample < PACKED_SIZE; table_current_sample += 2U)
     {
@@ -325,7 +351,7 @@ static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_nu
                 synth_velocity_and_voice_count(synth_envelope_generator(wavetable_ram[osc_number][sin_gen_voice->current_sample[osc_number]], sin_gen_voice), sin_gen_voice));
 
         /* set next sample from wavetable */
-        sin_gen_voice->current_sample[osc_number] += (uint32_t)freq;
+        sin_gen_voice->current_sample[osc_number] += (uint32_t)sin_gen_voice->freq[osc_number];
 
         /* check if current sample variable is bigger than wavetable length */
         if (sin_gen_voice->current_sample[osc_number] >= SAMPLE_COUNT)

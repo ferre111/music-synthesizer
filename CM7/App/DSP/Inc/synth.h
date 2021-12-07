@@ -52,7 +52,7 @@ typedef enum types_of_synth_T
 typedef struct synth_voice_T
 {
     voice_status voice_status;
-    double freq;
+    double freq[OSCILLATOR_COUNTS];
     uint32_t current_sample[OSCILLATOR_COUNTS];
     uint8_t key_number;
     uint8_t velocity;
@@ -72,6 +72,10 @@ typedef struct synth_oscillator_T
     wavetable_shape shape;
     /* determines octave offset */
     uint8_t octave_offset;
+    /* determines phase relative to first oscillator */
+    uint16_t phase;
+    /* determines oscillator volume */
+    uint8_t volume;
 } synth_oscillator;
 
 /*
@@ -131,7 +135,7 @@ void Synth_init(void);
 void Synth_process(void);
 void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity);
 void Synth_set_voice_stop_play(uint8_t key_number);
-void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset);
+void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset, uint16_t phase, uint8_t volume);
 void Synth_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
 
 #endif
