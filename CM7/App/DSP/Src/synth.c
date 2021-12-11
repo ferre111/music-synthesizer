@@ -63,7 +63,7 @@ const static double note_freq[12] =
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_WAVETABLE};
+static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_IIR};
 static synth_envelop_generator eg_ctx;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -75,6 +75,7 @@ static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_v
 inline static void synth_write_one_sample(uint32_t current_sample, int16_t value);
 static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
 static void synth_IIR_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
+static void synth_FM_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -127,6 +128,7 @@ void Synth_process(void)
                             synth_IIR_synthesis(&ctx.voices_tab[voice], osc);
                             break;
                         case TYPES_OF_SYNTH_FM:
+                            synth_FM_synthesis(&ctx.voices_tab[voice], osc);
                             break;
                         }
                     }
@@ -208,7 +210,7 @@ void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity)
             /* if currently synthesis method is based on IIR filter then calculate required coefficients */
             if (TYPES_OF_SYNTH_IIR == ctx.type_of_synth)
             {
-//                IIR_generator_compute_coef(&ctx.voices_tab[i].IIR_generator, ctx.voices_tab[i].freq); //todo
+                IIR_generator_compute_coef(&ctx.voices_tab[i].IIR_generator, ctx.voices_tab[i].freq[0]); //todo
             }
             /* return from function */
             return;
@@ -352,10 +354,10 @@ static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_v
 static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
 {
     /* fill all samples in table */
-    for (uint32_t table_current_sample = 0U; table_current_sample < PACKED_SIZE; table_current_sample += 2U)
+    for (uint32_t sample = 0U; table_current_sample < PACKED_SIZE; sample += 2U)
     {
         /* write sample after envelope generator edit it */
-        synth_write_one_sample(table_current_sample,
+        synth_write_one_sample(sample,
                 synth_velocity_and_voice_count(synth_envelope_generator(wavetable_ram[osc_number][sin_gen_voice->current_sample[osc_number]], sin_gen_voice), sin_gen_voice, osc_number));
 
         /* set next sample from wavetable */
@@ -367,6 +369,17 @@ static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_nu
             /* if so perform modulo */
             sin_gen_voice->current_sample[osc_number] = sin_gen_voice->current_sample[osc_number] % SAMPLE_COUNT;
         }
+    }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+static void synth_FM_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
+{
+    /* fill all samples in table */
+    for (uint32_t table_current_sample = 0U; table_current_sample < PACKED_SIZE; table_current_sample += 2U)
+    {
+
     }
 }
 
