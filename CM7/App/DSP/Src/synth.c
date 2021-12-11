@@ -71,10 +71,10 @@ static synth_envelop_generator eg_ctx;
 static void synth_set_freq(synth_voice* sin_gen_voice);
 static void synth_update_envelop_generator_coef_update(void);
 static double synth_envelope_generator(int16_t val, synth_voice* sin_gen_voice);
-static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice);
+static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice, uint8_t osc_number);
 inline static void synth_write_one_sample(uint32_t current_sample, int16_t value);
 static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
-static void synth_IIR_synthesis(synth_voice* sin_gen_voice);
+static void synth_IIR_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -105,25 +105,26 @@ void Synth_process(void)
         }
 
         /* clear table, multiple by two due to uint16_t */
-        memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U); //todo
+        memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
 
         /* go through all voices */
-        for (uint8_t i = 0U; i < VOICE_COUNT; i++)
+#pragma GCC unroll 10
+        for (uint8_t voice = 0U; voice < VOICE_COUNT; voice++)
         {
             /* if voice status is different than Off then fill table */
-            if (VOICE_STATUS_OFF != ctx.voices_tab[i].voice_status)
+            if (VOICE_STATUS_OFF != ctx.voices_tab[voice].voice_status)
             {
-                for (uint8_t j = 0U; j < OSCILLATOR_COUNTS; j++)
+                for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
                 {
-                    if (ctx.osc[j].activated)
+                    if (ctx.osc[osc].activated)
                     {
                         switch(ctx.type_of_synth)
                         {
                         case TYPES_OF_SYNTH_WAVETABLE:
-                            synth_wavetable_synthesis(&ctx.voices_tab[i], j);
+                            synth_wavetable_synthesis(&ctx.voices_tab[voice], osc);
                             break;
                         case TYPES_OF_SYNTH_IIR:
-                            synth_IIR_synthesis(&ctx.voices_tab[i]);
+                            synth_IIR_synthesis(&ctx.voices_tab[voice], osc);
                             break;
                         case TYPES_OF_SYNTH_FM:
                             break;
@@ -144,6 +145,12 @@ void Synth_process(void)
 
 void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset, uint16_t phase, uint8_t volume)
 {
+    static bool prev_activated[OSCILLATOR_COUNTS];
+    static wavetable_shape prev_shape[OSCILLATOR_COUNTS];
+
+    prev_activated[oscillator] = ctx.osc[oscillator].activated;
+    prev_shape[oscillator] = ctx.osc[oscillator].shape;
+
     ctx.osc[oscillator].activated = activated;
     ctx.osc[oscillator].shape = shape;
     ctx.osc[oscillator].octave_offset = octave_offset;
@@ -154,18 +161,18 @@ void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape
     {
         if (ctx.voices_tab[voice].voice_status != VOICE_STATUS_OFF)
         {
-            /* recalculate voice frequencies (they could be different due to octave offset change) */
+            /* recalculate voice frequencies (they could be different due to octave offset changes) */
             synth_set_freq(&ctx.voices_tab[voice]);
         }
-        /* set current sample to ensure correct phase between oscillators,  */
-        ctx.voices_tab[voice].current_sample[0] = 0;
-        for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
-        {
-            ctx.voices_tab[voice].current_sample[osc] = ctx.osc[osc].phase * SAMPLE_COUNT / 360U;
-        }
+        /* set current sample to ensure correct phase between oscillators */
+        ctx.voices_tab[voice].current_sample[oscillator] = (ctx.voices_tab[voice].current_sample[0] + ctx.osc[oscillator].phase * SAMPLE_COUNT / 360U) % SAMPLE_COUNT;
     }
 
-    Wavetable_load_new_wavetable(ctx.osc);
+    /* if oscillator shape change then load new wavetable */
+    if (prev_activated[oscillator] != ctx.osc[oscillator].activated || prev_shape[oscillator] != ctx.osc[oscillator].shape)
+    {
+        Wavetable_load_new_wavetable(ctx.osc);
+    }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -330,11 +337,12 @@ static double synth_envelope_generator(int16_t val, synth_voice* voice)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice)
+static int16_t synth_velocity_and_voice_count(double val, synth_voice* sin_gen_voice, uint8_t osc_number)
 {
     int16_t new_val = 0.0;
 
-    new_val = (int16_t)((val * sin_gen_voice->velocity) / 255.0);
+    new_val = (int16_t)((val * (double)sin_gen_voice->velocity * (double)ctx.osc[osc_number].volume) /
+              (double)(MAX_VELOCITY * MAX_OSCILLATOR_VOLUME));
 
     return new_val;
 }
@@ -348,7 +356,7 @@ static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_nu
     {
         /* write sample after envelope generator edit it */
         synth_write_one_sample(table_current_sample,
-                synth_velocity_and_voice_count(synth_envelope_generator(wavetable_ram[osc_number][sin_gen_voice->current_sample[osc_number]], sin_gen_voice), sin_gen_voice));
+                synth_velocity_and_voice_count(synth_envelope_generator(wavetable_ram[osc_number][sin_gen_voice->current_sample[osc_number]], sin_gen_voice), sin_gen_voice, osc_number));
 
         /* set next sample from wavetable */
         sin_gen_voice->current_sample[osc_number] += (uint32_t)sin_gen_voice->freq[osc_number];
@@ -364,12 +372,12 @@ static void synth_wavetable_synthesis(synth_voice* sin_gen_voice, uint8_t osc_nu
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void synth_IIR_synthesis(synth_voice* sin_gen_voice)
+static void synth_IIR_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
 {
     for (uint32_t i = 0U; i < PACKED_SIZE; i += 2U)
     {
         synth_write_one_sample(i, synth_velocity_and_voice_count(synth_envelope_generator(
-                (int16_t)(32767U * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice), sin_gen_voice));
+                (int16_t)(32767U * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice), sin_gen_voice, osc_number));
     }
 }
 

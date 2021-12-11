@@ -29,13 +29,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <stdfix.h>
 #include <string.h>
 #include "synth.h"
 #include "utility.h"
 #include "synthcom.h"
 #include "IIR_generator.h"
 #include "wavetable.h"
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -146,6 +146,18 @@ Error_Handler();
   /* USER CODE BEGIN WHILE */
 
   Synth_set_oscillator(0, 1, 0, 2, 0, 100);
+
+  q15_t a, b, c;
+  float af = 0.4, cf = 0.16;
+  arm_float_to_q15(&af, &a, 1);
+  arm_float_to_q15(&af, &b, 1);
+  arm_float_to_q15(&cf, &c, 1);
+  c = a + b;
+  arm_q15_to_float(&c, &cf, 1);
+  c = (uint32_t)(a * b) >> 15;
+  arm_q15_to_float(&c, &cf, 1);
+  c = (a / b) << 14;
+  arm_q15_to_float(&c, &cf, 1);
 
   while (1)
   {

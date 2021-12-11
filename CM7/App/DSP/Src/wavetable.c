@@ -40,15 +40,15 @@ void Wavetable_init(void)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-void Wavetable_load_new_wavetable(synth_oscillator *osc)
+void Wavetable_load_new_wavetable(synth_oscillator *oscillator)
 {
     uint8_t count_currently_enabled_osc = 0U;
     uint32_t basic_address = 0U;
 
     /* at first we need to know how many oscillators are currently working */
-    for (uint8_t i = 0U; i < OSCILLATOR_COUNTS; i++)
+    for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
     {
-        if (osc[i].activated)
+        if (oscillator[osc].activated)
         {
             count_currently_enabled_osc++;
         }
@@ -60,15 +60,15 @@ void Wavetable_load_new_wavetable(synth_oscillator *osc)
     HAL_I2S_DMAPause(&hi2s1);
     __HAL_I2S_DISABLE(&hi2s1);
 
-    for (uint8_t i = 0U; i < OSCILLATOR_COUNTS; i++)
+    for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
     {
-        if (osc[i].activated)
+        if (oscillator[osc].activated)
         {
-            basic_address = EXT_FLASH_BASE_ADDRESS + wavetable_shape_offset[osc[i].shape];
+            basic_address = EXT_FLASH_BASE_ADDRESS + wavetable_shape_offset[oscillator[osc].shape];
 
-            for (uint32_t j = 0U; j < SAMPLE_COUNT; j++)
+            for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
             {
-                wavetable_ram[i][j] = ((int32_t)*((int16_t*)(basic_address + j * 2U)) * osc[i].volume) / (count_currently_enabled_osc * MAX_OSCILLATOR_VOLUME * VOICE_COUNT);
+                wavetable_ram[osc][sample] = (*(int16_t*)(basic_address + sample * 2U)) / (int16_t)(count_currently_enabled_osc * VOICE_COUNT);
             }
         }
     }

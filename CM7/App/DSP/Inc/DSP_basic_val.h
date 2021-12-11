@@ -8,7 +8,7 @@
 #ifndef DSP_SRC_DSP_BASIC_VAL_H_
 #define DSP_SRC_DSP_BASIC_VAL_H_
 
-#define VOICE_COUNT 10
+#define VOICE_COUNT 10U
 
 /* size of data (in words) sends by one DMA transfer */
 #define PACKED_SIZE 48U
@@ -17,7 +17,8 @@
 /* wavetable sample count */
 #define SAMPLE_COUNT 48000U
 
-#define MAX_OSCILLATOR_VOLUME 100
+#define MAX_OSCILLATOR_VOLUME 100U
+#define MAX_VELOCITY 255U
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
