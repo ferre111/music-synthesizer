@@ -24,6 +24,7 @@ typedef enum menu_pages_T
 
     OSC1_PAGE,
     OSC2_PAGE,
+    FM_PAGE,
     ENVELOPE_GENERATOR_PAGE,
 
     Menu_pages_end

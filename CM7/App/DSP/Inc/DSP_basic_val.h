@@ -20,6 +20,9 @@
 #define MAX_OSCILLATOR_VOLUME 100U
 #define MAX_VELOCITY 255U
 
+#define FIRST_OSC   0U
+#define SECOND_OSC  1U
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 typedef enum wavetable_shape_T

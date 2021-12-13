@@ -149,6 +149,11 @@ bool SynthCom_process(void)
                                 ((SynthComPacket_other_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_other_oscillator_data *)tmp_buffer)->octave_offset,
                                 ((SynthComPacket_other_oscillator_data *)tmp_buffer)->phase, ((SynthComPacket_other_oscillator_data *)tmp_buffer)->volume);
             break;
+        case SYNTHCOM_FM_SYNTHESIS_DATA:
+            Synth_set_FM_oscillator(((SynthComPacket_fm_synthesis_data *)tmp_buffer)->carrier_shape, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->modulator_shape,
+                                    ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->mod_index, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq_mode,
+                                    ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->volume);
+            break;
 #endif
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:

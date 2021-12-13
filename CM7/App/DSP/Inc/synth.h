@@ -47,13 +47,27 @@ typedef enum types_of_synth_T
     TYPES_OF_SYNTH_FM
 } types_of_synth;
 
+typedef enum frequency_mode_T
+{
+    FREQUENCY_MODE_INDEPENDENT,
+    FREQUENCY_MODE_DEPENDENT_X025,
+    FREQUENCY_MODE_DEPENDENT_X033,
+    FREQUENCY_MODE_DEPENDENT_X05,
+    FREQUENCY_MODE_DEPENDENT_X1,
+    FREQUENCY_MODE_DEPENDENT_X2,
+    FREQUENCY_MODE_DEPENDENT_X3,
+    FREQUENCY_MODE_DEPENDENT_X4,
+
+    Dependent_frequency_end
+} frequency_mode;
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 typedef struct synth_voice_T
 {
     voice_status voice_status;
     double freq[OSCILLATOR_COUNTS];
-    uint32_t current_sample[OSCILLATOR_COUNTS];
+    int32_t current_sample[OSCILLATOR_COUNTS];
     uint8_t key_number;
     uint8_t velocity;
 
@@ -62,6 +76,11 @@ typedef struct synth_voice_T
     uint32_t release_counter;
 
     IIR_generator IIR_generator;
+
+    /* modulation index after scaling, parameter associated with FM modulation */
+    double scaled_modulation_index;
+    /* determines how much to increase current sample variable related with modulator oscillator, parameter associated with FM modulation */
+    uint16_t modulator_increaser;
 } synth_voice;
 
 typedef struct synth_oscillator_T
@@ -77,6 +96,23 @@ typedef struct synth_oscillator_T
     /* determines oscillator volume */
     uint8_t volume;
 } synth_oscillator;
+
+typedef struct synth_oscillators_fm_T
+{
+    /* determines carrier oscillator shape */
+    wavetable_shape shape_carrier_osc;
+    /* determines modulator oscillator shape */
+    wavetable_shape shape_modulator_osc;
+    /* determines modulation index */
+    double modulation_index;
+    /* determines frequency mode */
+    frequency_mode freq_mode;
+    /* determines modulator frequency */
+    uint16_t freq;
+    /* determines oscillator volume */
+    uint8_t volume;
+
+} synth_oscillators_fm;
 
 /*
  *            /|\
@@ -124,6 +160,8 @@ typedef struct synth_T
     volatile bool buff_ready;
     /* array with structure describing oscillators */
     synth_oscillator osc[OSCILLATOR_COUNTS];
+    /* array with structure describing oscillators for FM synthesis */
+    synth_oscillators_fm osc_fm;
     /* determines type of actual synthesis method */
     types_of_synth type_of_synth;
 } synth;
@@ -136,6 +174,7 @@ void Synth_process(void);
 void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity);
 void Synth_set_voice_stop_play(uint8_t key_number);
 void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset, uint16_t phase, uint8_t volume);
+void Synth_set_FM_oscillator(wavetable_shape shape_carrier_osc, wavetable_shape shape_modulator_osc, uint16_t modulation_index, frequency_mode freq_mode, uint16_t freq, uint8_t volume);
 void Synth_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);
 
 #endif

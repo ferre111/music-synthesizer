@@ -12,6 +12,7 @@
 #include "envelope_generator_page.h"
 #include "osc1_page.h"
 #include "osc2_page.h"
+#include "fm_synth_page.h"
 
 //----------------------------------------------------------------------
 
@@ -20,6 +21,7 @@ static page page_tab[Menu_pages_end] =
 {
     [OSC1_PAGE]                        = {.init_fun = Osc1_page_init, .draw_fun = Osc1_page_draw, .encoder_button_enter_press = Osc1_encoder_enter_press_fun, .exit_fun = Osc1_page_exit},
     [OSC2_PAGE]                        = {.init_fun = Osc2_page_init, .draw_fun = Osc2_page_draw, .encoder_button_enter_press = Osc2_encoder_enter_press_fun, .exit_fun = Osc2_page_exit},
+    [FM_PAGE]                          = {.init_fun = FMSynth_page_init, .draw_fun = FMSynth_page_draw, .encoder_button_enter_press = FMSynth_encoder_enter_press_fun, .exit_fun = FMSynth_page_exit},
     [ENVELOPE_GENERATOR_PAGE]          = {.init_fun = EnvelopeGenerator_page_init, .draw_fun = EnvelopeGenerator_page_draw, .encoder_button_enter_press = EnvelopeGenerator_encoder_enter_press_fun, .exit_fun = EnvelopeGenerator_page_exit},
 };
 

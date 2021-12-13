@@ -9,7 +9,8 @@
                     [SYNTHCOM_MIDI_KEY_OFF] = 2U,           \
                     [SYNTHCOM_ENVELOPE_GENERATOR_DATA] = 8U,\
                     [SYNTHCOM_FIRST_OSCILLATOR_DATA] = 5U,  \
-                    [SYNTHCOM_OTHER_OSCILLATOR_DATA] = 7U   \
+                    [SYNTHCOM_OTHER_OSCILLATOR_DATA] = 7U,  \
+                    [SYNTHCOM_FM_SYNTHESIS_DATA] = 12U      \
                 }                                           \
 
 /* Possible packet types */
@@ -22,6 +23,7 @@ typedef enum SynthCom_PacketType_T
     SYNTHCOM_ENVELOPE_GENERATOR_DATA,
     SYNTHCOM_FIRST_OSCILLATOR_DATA,
     SYNTHCOM_OTHER_OSCILLATOR_DATA,
+    SYNTHCOM_FM_SYNTHESIS_DATA,
 
     SynthCom_PacketType_end
 } SynthCom_PacketType;
@@ -74,5 +76,17 @@ typedef struct SynthComPacket_other_oscillator_data_T
 } __attribute__((packed)) SynthComPacket_other_oscillator_data;
 /* static assertion to check that the structure is indeed packed */
 static_assert(7U == sizeof(SynthComPacket_other_oscillator_data), "7U != sizeof(SynthComPacket_other_oscillator_data)");
+
+typedef struct SynthComPacket_fm_synthesis_data_T
+{
+    uint16_t carrier_shape;
+    uint16_t modulator_shape;
+    uint16_t mod_index;
+    uint16_t freq_mode;
+    uint16_t freq;
+    uint16_t volume;
+} __attribute__((packed)) SynthComPacket_fm_synthesis_data;
+/* static assertion to check that the structure is indeed packed */
+static_assert(12U == sizeof(SynthComPacket_fm_synthesis_data), "7U != sizeof(SynthComPacket_fm_synthesis_data)");
 
 #endif /* AMCOM_PACKETS_H_ */

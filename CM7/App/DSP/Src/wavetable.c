@@ -80,3 +80,35 @@ void Wavetable_load_new_wavetable(synth_oscillator *oscillator)
     utility_LoadLedOff();
 }
 
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void Wavetable_load_new_wavetable_fm(synth_oscillators_fm *fm_oscillator)
+{
+    uint32_t basic_address = 0U;
+
+    utility_LoadLedOn();
+
+    __disable_irq();
+    HAL_I2S_DMAPause(&hi2s1);
+    __HAL_I2S_DISABLE(&hi2s1);
+
+    basic_address = EXT_FLASH_BASE_ADDRESS + wavetable_shape_offset[fm_oscillator->shape_carrier_osc];
+
+    for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
+    {
+        wavetable_ram[FIRST_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / VOICE_COUNT;
+    }
+
+    basic_address = EXT_FLASH_BASE_ADDRESS + wavetable_shape_offset[fm_oscillator->shape_modulator_osc];
+
+    for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
+    {
+        wavetable_ram[SECOND_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / VOICE_COUNT;
+    }
+
+    __HAL_I2S_ENABLE(&hi2s1);
+    HAL_I2S_DMAResume(&hi2s1);
+    __enable_irq();
+
+    utility_LoadLedOff();
+}
