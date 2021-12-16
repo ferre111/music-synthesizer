@@ -75,7 +75,8 @@ static double dependent_frequency_coef[Dependent_frequency_end] =
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_FM,
-                                                         .osc_fm = {.volume = 100, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 10U, .modulation_index = 4}};
+                                                         .osc_fm = {.volume = 100, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 10U, .modulation_index = 4},
+                                                         .pitch_bend_val = CENTER_PITCH_BEND};
 static synth_envelop_generator eg_ctx;
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -322,6 +323,29 @@ void Synth_set_voice_stop_play(uint8_t key_number)
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
+void synth_pitch_bend_change(uint16_t pitch_bend)
+{
+    ctx.pitch_bend_val = pitch_bend;
+
+    for (uint32_t voice = 0U; voice < VOICE_COUNT; voice++)
+    {
+        if (VOICE_STATUS_OFF != ctx.voices_tab[voice].voice_status)
+        {
+            if (TYPES_OF_SYNTH_FM == ctx.type_of_synth)
+            {
+                synth_set_freq_fm(&ctx.voices_tab[voice]);
+                synth_fm_set_modulator_increaser_and_scaled_modulation_index(&ctx.voices_tab[voice]);
+            }
+            else if (TYPES_OF_SYNTH_WAVETABLE == ctx.type_of_synth)
+            {
+                synth_set_freq_wavetable(&ctx.voices_tab[voice]);
+            }
+        }
+    }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
 static void synth_set_freq_wavetable(synth_voice* sin_gen_voice)
 {
     uint8_t key_in_oct = 0U;
@@ -337,7 +361,8 @@ static void synth_set_freq_wavetable(synth_voice* sin_gen_voice)
         {
             octave = 0U;
         }
-        sin_gen_voice->freq[osc] = note_freq[key_in_oct] * pow(2U, octave);
+        sin_gen_voice->freq[osc] = note_freq[key_in_oct] * pow(2U, octave)
+                * pow(2, ((double)(ctx.pitch_bend_val - (int16_t)CENTER_PITCH_BEND))/((double)(4096U * 12U)));
     }
 }
 
@@ -351,7 +376,8 @@ static void synth_set_freq_fm(synth_voice* sin_gen_voice)
     key_in_oct = sin_gen_voice->key_number % 12U;
     octave = sin_gen_voice->key_number / 12U;
 
-    sin_gen_voice->freq[FIRST_OSC] = note_freq[key_in_oct] * pow(2U, octave);
+    sin_gen_voice->freq[FIRST_OSC] = note_freq[key_in_oct] * pow(2U, octave)
+            * pow(2, ((double)(ctx.pitch_bend_val - (int16_t)CENTER_PITCH_BEND))/((double)(4096U * 12U)));
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/

@@ -7,6 +7,7 @@
 #define PAYLOAD {                                           \
                     [SYNTHCOM_MIDI_KEY_ON] = 2U,            \
                     [SYNTHCOM_MIDI_KEY_OFF] = 2U,           \
+                    [SYNTHCOM_MIDI_PITCH_BEND] = 2U,        \
                     [SYNTHCOM_ENVELOPE_GENERATOR_DATA] = 8U,\
                     [SYNTHCOM_FIRST_OSCILLATOR_DATA] = 5U,  \
                     [SYNTHCOM_OTHER_OSCILLATOR_DATA] = 7U,  \
@@ -20,6 +21,7 @@ typedef enum SynthCom_PacketType_T
 
     SYNTHCOM_MIDI_KEY_ON,
     SYNTHCOM_MIDI_KEY_OFF,
+    SYNTHCOM_MIDI_PITCH_BEND,
     SYNTHCOM_ENVELOPE_GENERATOR_DATA,
     SYNTHCOM_FIRST_OSCILLATOR_DATA,
     SYNTHCOM_OTHER_OSCILLATOR_DATA,
@@ -43,6 +45,13 @@ typedef struct SynthComPacket_midi_key_off_T
 } __attribute__((packed)) SynthComPacket_midi_key_off;
 /* static assertion to check that the structure is indeed packed */
 static_assert(2U == sizeof(SynthComPacket_midi_key_off), "2U != sizeof(SynthComPacket_Test)");
+
+typedef struct SynthComPacket_midi_pitch_bend_T
+{
+    uint16_t pitch_bend;
+} __attribute__((packed)) SynthComPacket_midi_pitch_bend;
+/* static assertion to check that the structure is indeed packed */
+static_assert(2U == sizeof(SynthComPacket_midi_pitch_bend), "2U != sizeof(SynthComPacket_midi_pitch_bend)");
 
 typedef struct SynthComPacket_envelope_generator_data_T
 {

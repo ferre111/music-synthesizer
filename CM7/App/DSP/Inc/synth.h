@@ -164,6 +164,8 @@ typedef struct synth_T
     synth_oscillators_fm osc_fm;
     /* determines type of actual synthesis method */
     types_of_synth type_of_synth;
+    /* determines pitch bend value */
+    uint16_t pitch_bend_val;
 } synth;
 
 
@@ -173,6 +175,7 @@ void Synth_init(void);
 void Synth_process(void);
 void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity);
 void Synth_set_voice_stop_play(uint8_t key_number);
+void synth_pitch_bend_change(uint16_t pitch_bend);
 void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape shape, uint8_t octave_offset, uint16_t phase, uint8_t volume);
 void Synth_set_FM_oscillator(wavetable_shape shape_carrier_osc, wavetable_shape shape_modulator_osc, uint16_t modulation_index, frequency_mode freq_mode, uint16_t freq, uint8_t volume);
 void Synth_set_envelop_generator(uint8_t sustain_level, uint32_t attack_time, uint32_t decay_time, uint32_t release_time);

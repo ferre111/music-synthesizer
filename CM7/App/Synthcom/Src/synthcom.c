@@ -135,6 +135,9 @@ bool SynthCom_process(void)
         case SYNTHCOM_MIDI_KEY_OFF:
             Synth_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
+        case SYNTHCOM_MIDI_PITCH_BEND:
+            synth_pitch_bend_change(((SynthComPacket_midi_pitch_bend *)tmp_buffer)->pitch_bend);
+            break;
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
             Synth_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
                     ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);

@@ -133,6 +133,9 @@ bool SynthCom_process(void)
         case SYNTHCOM_MIDI_KEY_OFF:
             sin_gen_set_play(false, ((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
+        case SYNTHCOM_MIDI_PITCH_BEND:
+            synth_pitch_bend_change(((SynthComPacket_midi_pitch_bend *)tmp_buffer)->pitch_bend);
+            break;
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
             sin_gen_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
                     ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
@@ -144,6 +147,11 @@ bool SynthCom_process(void)
         case SYNTHCOM_OTHER_OSCILLATOR_DATA:
             Synth_set_oscillator(((SynthComPacket_oscillator_data *)tmp_buffer)->oscillator, ((SynthComPacket_oscillator_data *)tmp_buffer)->activated,
                                 ((SynthComPacket_oscillator_data *)tmp_buffer)->shape, ((SynthComPacket_oscillator_data *)tmp_buffer)->octave_offset);
+        case SYNTHCOM_FM_SYNTHESIS_DATA:
+            Synth_set_FM_oscillator(((SynthComPacket_fm_synthesis_data *)tmp_buffer)->carrier_shape, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->modulator_shape,
+                                    ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->mod_index, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq_mode,
+                                    ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->volume);
+            break;
 #endif
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:

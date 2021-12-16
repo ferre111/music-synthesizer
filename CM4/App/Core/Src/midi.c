@@ -90,6 +90,9 @@ void USBH_MIDI_ReceiveCallback(USBH_HandleTypeDef *phost)
 
 static void MIDI_App_ReceiveFrame(void)
 {
+    /* auxiliary variable */
+    uint16_t aux_var;
+
     if (ctx.channel == (ctx.midi_buffer_read[1] & ~(0xF0U)))   //check MIDI channel
     {
         switch (ctx.midi_buffer_read[1] >> 4U)                //check status
@@ -109,6 +112,8 @@ static void MIDI_App_ReceiveFrame(void)
         case MIDI_CHANNEL_PRESSURE:
             break;
         case MIDI_PITCH_BEND:
+            aux_var = ctx.midi_buffer_read[2] + ((uint16_t)ctx.midi_buffer_read[3] << 7U);
+            SynthCom_transmit(SYNTHCOM_MIDI_PITCH_BEND, &aux_var);
             break;
         }
     }

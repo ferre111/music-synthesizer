@@ -96,14 +96,14 @@ void Wavetable_load_new_wavetable_fm(synth_oscillators_fm *fm_oscillator)
 
     for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
     {
-        wavetable_ram[FIRST_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / VOICE_COUNT;
+        wavetable_ram[FIRST_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / (int16_t)VOICE_COUNT;
     }
 
     basic_address = EXT_FLASH_BASE_ADDRESS + wavetable_shape_offset[fm_oscillator->shape_modulator_osc];
 
     for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
     {
-        wavetable_ram[SECOND_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / VOICE_COUNT;
+        wavetable_ram[SECOND_OSC][sample] = (*(int16_t*)(basic_address + sample * 2U)) / (int16_t)VOICE_COUNT;
     }
 
     __HAL_I2S_ENABLE(&hi2s1);
