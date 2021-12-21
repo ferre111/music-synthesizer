@@ -13,9 +13,9 @@
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 // if FRACTIONAL macro is equal to 1 then IIR generator operate on fixed point numbers otherwise operate on floating point numbers
-#define FRACTIONAL 0U
+#define FRACTIONAL 1U
 // if USE_CMSIS_IIR macro is equal to 1 then IIR generator use CMSIS function "arm_biquad_cascade_df1_q31" in IIR_generator_get_next_val function
-#define USE_CMSIS_IIR 0U
+#define USE_CMSIS_IIR 1U
 
 #define SAMPLING_FREQ 48000U
 

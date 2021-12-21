@@ -136,10 +136,10 @@ bool SynthCom_process(void)
             Synth_set_voice_stop_play(((SynthComPacket_midi_key_off *)tmp_buffer)->note_number);
             break;
         case SYNTHCOM_MIDI_PITCH_BEND:
-            synth_pitch_bend_change(((SynthComPacket_midi_pitch_bend *)tmp_buffer)->pitch_bend);
+            Synth_pitch_bend_change(((SynthComPacket_midi_pitch_bend *)tmp_buffer)->pitch_bend);
             break;
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
-            Synth_set_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
+            Synth_set_ampl_envelop_generator(((SynthComPacket_envelope_generator_data *)tmp_buffer)->sustain_level, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->attack_time,
                     ((SynthComPacket_envelope_generator_data *)tmp_buffer)->decay_time, ((SynthComPacket_envelope_generator_data *)tmp_buffer)->release_time);
             break;
         case SYNTHCOM_FIRST_OSCILLATOR_DATA:
@@ -161,9 +161,11 @@ bool SynthCom_process(void)
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:
         case SYNTHCOM_MIDI_KEY_OFF:
+        case SYNTHCOM_MIDI_PITCH_BEND:
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
         case SYNTHCOM_FIRST_OSCILLATOR_DATA:
         case SYNTHCOM_OTHER_OSCILLATOR_DATA:
+        case SYNTHCOM_FM_SYNTHESIS_DATA:
 #endif
         default:
             utility_ErrLedOn();

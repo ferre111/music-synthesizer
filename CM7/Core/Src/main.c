@@ -88,6 +88,9 @@ int main(void)
   int32_t timeout;
 /* USER CODE END Boot_Mode_Sequence_0 */
 
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
+
 /* USER CODE BEGIN Boot_Mode_Sequence_1 */
 
 /* USER CODE END Boot_Mode_Sequence_1 */
@@ -144,20 +147,6 @@ Error_Handler();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  Synth_set_oscillator(0, 1, 0, 2, 0, 100);
-
-  q31_t a, b, c;
-  float af = -0.4, bf = -0.2, cf = 0.16;
-  arm_float_to_q31(&af, &a, 1);
-  arm_float_to_q31(&bf, &b, 1);
-  arm_float_to_q31(&cf, &c, 1);
-  c = a + b;
-  arm_q31_to_float(&c, &cf, 1);
-  c = Q31_MULTIPLICATION(a, b);
-  arm_q31_to_float(&c, &cf, 1);
-  c = Q31_DIVISION(b, a);
-  arm_q31_to_float(&c, &cf, 1);
 
   while (1)
   {

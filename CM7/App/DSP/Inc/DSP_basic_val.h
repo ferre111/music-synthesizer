@@ -25,6 +25,8 @@
 #define FIRST_OSC   0U
 #define SECOND_OSC  1U
 
+#define NUMBER_OF_SAMPLES_IN_MILISECOND 48U
+
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 typedef enum wavetable_shape_T
