@@ -60,9 +60,11 @@ static double dependent_frequency_coef[Dependent_frequency_end] =
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .type_of_synth = TYPES_OF_SYNTH_FM,
-                                                         .osc_fm = {.volume = 100, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 10U, .modulation_index = 4},
-                                                         .pitch_bend_val = CENTER_PITCH_BEND};
+static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .pitch_bend_val = CENTER_PITCH_BEND,
+                                                         .osc[FIRST_OSC] = {.activated = true, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .volume = 100U},
+                                                         .osc[SECOND_OSC] = {.activated = false, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .phase = 0U, .volume = 100U},
+                                                         .osc_fm = {.shape_carrier_osc = WAVETABLE_SHAPE_SINE, .shape_modulator_osc = WAVETABLE_SHAPE_SINE, .modulation_index = 1.0, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 3U, .volume = 100},
+                                                         };
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -87,6 +89,22 @@ void Synth_init(void)
     {
         EG_set(&ctx.voices_tab[voice].amp_eg, DEF_SUSTAIN_LEVEL, DEF_ATTACK_TIME, DEF_DECAY_TIME, DEF_RELEASE_TIME);
         ctx.voices_tab[voice].amp_eg.status = EG_OFF;
+    }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------*/
+
+void Synth_set_mode(uint8_t mode)
+{
+    ctx.type_of_synth = mode;
+
+    if (TYPES_OF_SYNTH_WAVETABLE == ctx.type_of_synth)
+    {
+        Wavetable_load_new_wavetable(ctx.osc);
+    }
+    else if (TYPES_OF_SYNTH_FM == ctx.type_of_synth)
+    {
+        Wavetable_load_new_wavetable_fm(&ctx.osc_fm);
     }
 }
 
@@ -120,6 +138,8 @@ void Synth_process(void)
             {
                 switch(ctx.type_of_synth)
                 {
+                case TYPES_OF_SYNTH_NONE:
+                    break;
                 case TYPES_OF_SYNTH_WAVETABLE:
                     for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
                     {
@@ -129,6 +149,9 @@ void Synth_process(void)
                         }
                     }
                     break;
+                case TYPES_OF_SYNTH_FM:
+                    synth_FM_synthesis(&ctx.voices_tab[voice]);
+                    break;
                 case TYPES_OF_SYNTH_IIR:
                     for (uint8_t osc = 0U; osc < OSCILLATOR_COUNTS; osc++)
                     {
@@ -137,9 +160,6 @@ void Synth_process(void)
                             synth_IIR_synthesis(&ctx.voices_tab[voice], osc);
                         }
                     }
-                    break;
-                case TYPES_OF_SYNTH_FM:
-                    synth_FM_synthesis(&ctx.voices_tab[voice]);
                     break;
                 }
             }

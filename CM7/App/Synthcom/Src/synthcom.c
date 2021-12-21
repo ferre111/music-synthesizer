@@ -157,6 +157,9 @@ bool SynthCom_process(void)
                                     ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->mod_index, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq_mode,
                                     ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->freq, ((SynthComPacket_fm_synthesis_data *)tmp_buffer)->volume);
             break;
+        case SYNTHCOM_SET_MODE:
+            Synth_set_mode(((SynthComPacket_set_mode *)tmp_buffer)->mode);
+            break;
 #endif
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:

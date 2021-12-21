@@ -9,6 +9,7 @@
 #include "buttons.h"
 #include "utility.h"
 
+#include "select_mode_page.h"
 #include "envelope_generator_page.h"
 #include "osc1_page.h"
 #include "osc2_page.h"
@@ -19,6 +20,7 @@
 /* Array of structure with pointer to functions associate with appropriate page*/
 static page page_tab[Menu_pages_end] =
 {
+    [SELECT_MODE_PAGE]                 = {.init_fun = Select_mode_page_init, .draw_fun = Select_mode_page_draw, .encoder_button_enter_press = Select_mode_encoder_enter_press_fun, .exit_fun = Select_mode_page_exit},
     [OSC1_PAGE]                        = {.init_fun = Osc1_page_init, .draw_fun = Osc1_page_draw, .encoder_button_enter_press = Osc1_encoder_enter_press_fun, .exit_fun = Osc1_page_exit},
     [OSC2_PAGE]                        = {.init_fun = Osc2_page_init, .draw_fun = Osc2_page_draw, .encoder_button_enter_press = Osc2_encoder_enter_press_fun, .exit_fun = Osc2_page_exit},
     [FM_PAGE]                          = {.init_fun = FMSynth_page_init, .draw_fun = FMSynth_page_draw, .encoder_button_enter_press = FMSynth_encoder_enter_press_fun, .exit_fun = FMSynth_page_exit},

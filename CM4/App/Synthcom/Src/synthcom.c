@@ -156,9 +156,11 @@ bool SynthCom_process(void)
 #ifdef CORE_CM4
         case SYNTHCOM_MIDI_KEY_ON:
         case SYNTHCOM_MIDI_KEY_OFF:
+        case SYNTHCOM_MIDI_PITCH_BEND:
         case SYNTHCOM_ENVELOPE_GENERATOR_DATA:
         case SYNTHCOM_FIRST_OSCILLATOR_DATA:
         case SYNTHCOM_OTHER_OSCILLATOR_DATA:
+        case SYNTHCOM_FM_SYNTHESIS_DATA:
 #endif
         default:
             utility_ErrLedOn();

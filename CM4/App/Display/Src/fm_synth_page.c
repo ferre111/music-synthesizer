@@ -24,7 +24,7 @@
 
 #define DEF_SHAPE           0U
 #define DEF_MOD_INDEX       10U
-#define DEF_FREQ_MODE       0U
+#define DEF_FREQ_MODE       4U
 #define DEF_FREQ            3U
 #define DEF_VOLUME          100U
 
@@ -87,12 +87,12 @@ typedef struct fm_synth_page_T
 static fm_synth_page ctx = {.current_setting = CURRENT_SETTING_CARRIER_SHAPE_OSC,
                                      .settings_data =
                                        {
-                                           [CURRENT_SETTING_CARRIER_SHAPE_OSC]    = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
-                                           [CURRENT_SETTING_MODU_SHAPE_OSC]    = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
-                                           [CURRENT_SETTING_MOD_INDEX]      = {.max_value = MAX_MOD_INDEX, .data = DEF_MOD_INDEX},
-                                           [CURRENT_SETTING_FREQ_MODE]      = {.max_value = MAX_FREQ_MODE, .data = DEF_FREQ_MODE},
-                                           [CURRENT_SETTING_FREQ]           = {.max_value = MAX_FREQ_MOD_INDEP, .data = DEF_FREQ},
-                                           [CURRENT_SETTING_VOLUME]         = {.max_value = MAX_VOLUME, .data = DEF_VOLUME},
+                                           [CURRENT_SETTING_CARRIER_SHAPE_OSC]  = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
+                                           [CURRENT_SETTING_MODU_SHAPE_OSC]     = {.max_value = MAX_SHAPE, .data = DEF_SHAPE},
+                                           [CURRENT_SETTING_MOD_INDEX]          = {.max_value = MAX_MOD_INDEX, .data = DEF_MOD_INDEX},
+                                           [CURRENT_SETTING_FREQ_MODE]          = {.max_value = MAX_FREQ_MODE, .data = DEF_FREQ_MODE},
+                                           [CURRENT_SETTING_FREQ]               = {.max_value = MAX_FREQ_MOD_INDEP, .data = DEF_FREQ},
+                                           [CURRENT_SETTING_VOLUME]             = {.max_value = MAX_VOLUME, .data = DEF_VOLUME},
                                        }
 };
 
@@ -116,7 +116,7 @@ void FMSynth_page_init(void)
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_MOD_INDEX].setting_id, 0U, 32U, ctx.settings_data[CURRENT_SETTING_MOD_INDEX].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_FREQ_MODE].setting_id, 0U, 40U, ctx.settings_data[CURRENT_SETTING_FREQ_MODE].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_FREQ].setting_id, 0U, 48U, ctx.settings_data[CURRENT_SETTING_FREQ].setting_txt, 1U, false);
-    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id, 0U, 56U, ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, 1U, false);
+    OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_VOLUME].setting_id, 0U, 55U, ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, 1U, false);
     snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "FM");
 }
 

@@ -34,9 +34,10 @@ typedef enum note_T
 
 typedef enum types_of_synth_T
 {
+    TYPES_OF_SYNTH_NONE,
     TYPES_OF_SYNTH_WAVETABLE,
-    TYPES_OF_SYNTH_IIR,
-    TYPES_OF_SYNTH_FM
+    TYPES_OF_SYNTH_FM,
+    TYPES_OF_SYNTH_IIR
 } types_of_synth;
 
 typedef enum frequency_mode_T
@@ -129,6 +130,7 @@ typedef struct synth_T
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
 void Synth_init(void);
+void Synth_set_mode(uint8_t mode);
 void Synth_process(void);
 void Synth_set_voice_start_play(uint8_t key_number, uint8_t velocity);
 void Synth_set_voice_stop_play(uint8_t key_number);

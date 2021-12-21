@@ -11,7 +11,8 @@
                     [SYNTHCOM_ENVELOPE_GENERATOR_DATA] = 8U,\
                     [SYNTHCOM_FIRST_OSCILLATOR_DATA] = 5U,  \
                     [SYNTHCOM_OTHER_OSCILLATOR_DATA] = 7U,  \
-                    [SYNTHCOM_FM_SYNTHESIS_DATA] = 12U      \
+                    [SYNTHCOM_FM_SYNTHESIS_DATA] = 12U,     \
+                    [SYNTHCOM_SET_MODE] = 1U                \
                 }                                           \
 
 /* Possible packet types */
@@ -26,6 +27,7 @@ typedef enum SynthCom_PacketType_T
     SYNTHCOM_FIRST_OSCILLATOR_DATA,
     SYNTHCOM_OTHER_OSCILLATOR_DATA,
     SYNTHCOM_FM_SYNTHESIS_DATA,
+    SYNTHCOM_SET_MODE,
 
     SynthCom_PacketType_end
 } SynthCom_PacketType;
@@ -97,5 +99,12 @@ typedef struct SynthComPacket_fm_synthesis_data_T
 } __attribute__((packed)) SynthComPacket_fm_synthesis_data;
 /* static assertion to check that the structure is indeed packed */
 static_assert(12U == sizeof(SynthComPacket_fm_synthesis_data), "7U != sizeof(SynthComPacket_fm_synthesis_data)");
+
+typedef struct SynthComPacket_set_mode_T
+{
+    uint8_t mode;
+} __attribute__((packed)) SynthComPacket_set_mode;
+/* static assertion to check that the structure is indeed packed */
+static_assert(1U == sizeof(SynthComPacket_set_mode), "1U != sizeof(SynthComPacket_set_mode)");
 
 #endif /* AMCOM_PACKETS_H_ */

@@ -22,6 +22,7 @@ typedef enum menu_pages_T
 {
     Menu_pages_start,
 
+    SELECT_MODE_PAGE,
     OSC1_PAGE,
     OSC2_PAGE,
     FM_PAGE,
