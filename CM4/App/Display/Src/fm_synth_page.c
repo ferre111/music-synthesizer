@@ -130,7 +130,7 @@ void FMSynth_page_draw(void)
     snprintf(ctx.settings_data[CURRENT_SETTING_MODU_SHAPE_OSC].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Osc M shape: %*s", 8U, shape_txt[ctx.settings_data[CURRENT_SETTING_MODU_SHAPE_OSC].data]);
     snprintf(ctx.settings_data[CURRENT_SETTING_MOD_INDEX].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Modulation index: %u.%u", ctx.settings_data[CURRENT_SETTING_MOD_INDEX].data / 10, ctx.settings_data[CURRENT_SETTING_MOD_INDEX].data % 10);
     snprintf(ctx.settings_data[CURRENT_SETTING_FREQ_MODE].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Freq mode: %*s", 10U, freq_mode_txt[ctx.settings_data[CURRENT_SETTING_FREQ_MODE].data]);
-    snprintf(ctx.settings_data[CURRENT_SETTING_FREQ].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Frequency: %*u", 10U, ctx.settings_data[CURRENT_SETTING_FREQ].data);
+    snprintf(ctx.settings_data[CURRENT_SETTING_FREQ].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Frequency: %*uHz", 10U, ctx.settings_data[CURRENT_SETTING_FREQ].data);
     snprintf(ctx.settings_data[CURRENT_SETTING_VOLUME].setting_txt, NUMBER_OF_LETTERS_IN_LINE, "Volume: %*u", 13U, ctx.settings_data[CURRENT_SETTING_VOLUME].data);
 }
 

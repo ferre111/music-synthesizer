@@ -64,7 +64,7 @@ static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_ta
                                                          .osc[FIRST_OSC] = {.activated = true, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .volume = 100U},
                                                          .osc[SECOND_OSC] = {.activated = false, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .phase = 0U, .volume = 100U},
                                                          .osc_fm = {.shape_carrier_osc = WAVETABLE_SHAPE_SINE, .shape_modulator_osc = WAVETABLE_SHAPE_SINE, .modulation_index = 1.0, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 3U, .volume = 100},
-                                                         };
+                                                        };
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -130,7 +130,6 @@ void Synth_process(void)
         memset(ctx.table_ptr, 0U, PACKED_SIZE * 2U);
 
         /* go through all voices */
-#pragma GCC unroll 10
         for (uint8_t voice = 0U; voice < VOICE_COUNT; voice++)
         {
             /* if voice status is different than Off then fill table */
@@ -165,7 +164,7 @@ void Synth_process(void)
             }
         }
         /* Clean DCache after filling whole table */
-        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
+//        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
         ctx.dma_flag = false;
         ctx.buff_ready = true;
         utility_TimeMeasurmentsSetLow();
@@ -179,30 +178,33 @@ void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape
     static bool prev_activated[OSCILLATOR_COUNTS];
     static wavetable_shape prev_shape[OSCILLATOR_COUNTS];
 
-    prev_activated[oscillator] = ctx.osc[oscillator].activated;
-    prev_shape[oscillator] = ctx.osc[oscillator].shape;
-
-    ctx.osc[oscillator].activated = activated;
-    ctx.osc[oscillator].shape = shape;
-    ctx.osc[oscillator].octave_offset = octave_offset;
-    ctx.osc[oscillator].phase = phase;
-    ctx.osc[oscillator].volume = volume;
-
-    for (uint32_t voice = 0U; voice < VOICE_COUNT; voice++)
+    if (TYPES_OF_SYNTH_WAVETABLE == ctx.type_of_synth)
     {
-        if (EG_OFF != ctx.voices_tab[voice].amp_eg.status)
+        prev_activated[oscillator] = ctx.osc[oscillator].activated;
+        prev_shape[oscillator] = ctx.osc[oscillator].shape;
+
+        ctx.osc[oscillator].activated = activated;
+        ctx.osc[oscillator].shape = shape;
+        ctx.osc[oscillator].octave_offset = octave_offset;
+        ctx.osc[oscillator].phase = phase;
+        ctx.osc[oscillator].volume = volume;
+
+        for (uint32_t voice = 0U; voice < VOICE_COUNT; voice++)
         {
-            /* recalculate voice frequencies (they could be different due to octave offset changes) */
-            synth_set_freq_wavetable(&ctx.voices_tab[voice]);
+            if (EG_OFF != ctx.voices_tab[voice].amp_eg.status)
+            {
+                /* recalculate voice frequencies (they could be different due to octave offset changes) */
+                synth_set_freq_wavetable(&ctx.voices_tab[voice]);
+            }
+            /* set current sample to ensure correct phase between oscillators */
+            ctx.voices_tab[voice].current_sample[oscillator] = (ctx.voices_tab[voice].current_sample[FIRST_OSC] + (uint32_t)ctx.osc[oscillator].phase * SAMPLE_COUNT / 360U) % SAMPLE_COUNT;
         }
-        /* set current sample to ensure correct phase between oscillators */
-        ctx.voices_tab[voice].current_sample[oscillator] = (ctx.voices_tab[voice].current_sample[FIRST_OSC] + (uint32_t)ctx.osc[oscillator].phase * SAMPLE_COUNT / 360U) % SAMPLE_COUNT;
-    }
 
-    /* if oscillator shape change then load new wavetable */
-    if (prev_activated[oscillator] != ctx.osc[oscillator].activated || prev_shape[oscillator] != ctx.osc[oscillator].shape)
-    {
-        Wavetable_load_new_wavetable(ctx.osc);
+        /* if oscillator shape change then load new wavetable */
+        if (prev_activated[oscillator] != ctx.osc[oscillator].activated || prev_shape[oscillator] != ctx.osc[oscillator].shape)
+        {
+            Wavetable_load_new_wavetable(ctx.osc);
+        }
     }
 }
 
@@ -211,27 +213,31 @@ void Synth_set_oscillator(uint8_t oscillator, uint8_t activated, wavetable_shape
 void Synth_set_FM_oscillator(wavetable_shape shape_carrier_osc, wavetable_shape shape_modulator_osc, uint16_t modulation_index, frequency_mode freq_mode, uint16_t freq, uint8_t volume)
 {
     static wavetable_shape prev_carrier_shape, prev_modulator_shape;
-    prev_carrier_shape = ctx.osc_fm.shape_carrier_osc;
-    prev_modulator_shape = ctx.osc_fm.shape_modulator_osc;
 
-    ctx.osc_fm.shape_carrier_osc = shape_carrier_osc;
-    ctx.osc_fm.shape_modulator_osc = shape_modulator_osc;
-    ctx.osc_fm.modulation_index = ((double)modulation_index) / 10.0;
-    ctx.osc_fm.freq_mode = freq_mode;
-    ctx.osc_fm.freq = freq;
-    ctx.osc_fm.volume = volume;
-
-    for (uint8_t voice = 0U; voice < VOICE_COUNT; voice++)
+    if (TYPES_OF_SYNTH_FM == ctx.type_of_synth)
     {
-        if(EG_OFF != ctx.voices_tab[voice].amp_eg.status)
+        prev_carrier_shape = ctx.osc_fm.shape_carrier_osc;
+        prev_modulator_shape = ctx.osc_fm.shape_modulator_osc;
+
+        ctx.osc_fm.shape_carrier_osc = shape_carrier_osc;
+        ctx.osc_fm.shape_modulator_osc = shape_modulator_osc;
+        ctx.osc_fm.modulation_index = ((double)modulation_index) / 10.0;
+        ctx.osc_fm.freq_mode = freq_mode;
+        ctx.osc_fm.freq = freq;
+        ctx.osc_fm.volume = volume;
+
+        for (uint8_t voice = 0U; voice < VOICE_COUNT; voice++)
         {
-            synth_fm_set_modulator_increaser_and_scaled_modulation_index(&ctx.voices_tab[voice]);
+            if(EG_OFF != ctx.voices_tab[voice].amp_eg.status)
+            {
+                synth_fm_set_modulator_increaser_and_scaled_modulation_index(&ctx.voices_tab[voice]);
+            }
         }
-    }
 
-    if (prev_carrier_shape != ctx.osc_fm.shape_carrier_osc || prev_modulator_shape != ctx.osc_fm.shape_modulator_osc)
-    {
-        Wavetable_load_new_wavetable_fm(&ctx.osc_fm);
+        if (prev_carrier_shape != ctx.osc_fm.shape_carrier_osc || prev_modulator_shape != ctx.osc_fm.shape_modulator_osc)
+        {
+            Wavetable_load_new_wavetable_fm(&ctx.osc_fm);
+        }
     }
 }
 

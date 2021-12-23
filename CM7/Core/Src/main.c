@@ -22,6 +22,7 @@
 #include "dma.h"
 #include "i2s.h"
 #include "quadspi.h"
+#include "sdmmc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -138,6 +139,7 @@ Error_Handler();
   MX_TIM16_Init();
   MX_I2S1_Init();
   MX_QUADSPI_Init();
+  MX_SDMMC1_SD_Init();
   /* USER CODE BEGIN 2 */
   Synth_init();
   SynthCom_Init();

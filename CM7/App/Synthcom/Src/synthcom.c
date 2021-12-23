@@ -3,6 +3,7 @@
 #include "synthcom.h"
 #include "ring_buffer.h"
 #include "utility.h"
+#include "core_cm7.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -105,8 +106,14 @@ bool SynthCom_process(void)
     bool status = false;
     SynthCom_PacketType packet_type = SynthCom_PacketType_end;
 
+    /* Clean DCache before reading message counter */
+//    SCB_CleanDCache_by_Addr((uint32_t*)&ctx.message_counter_own, 4U);
+
     if (0U != *ctx.message_counter_own)
     {
+        /* Clean DCache before reading ring buffer */
+//        SCB_CleanDCache_by_Addr((uint32_t*)&ctx.ring_buffer_Rx, DATA_BUFFER_SIZE);
+
         /* Get packet type byte */
         status = RingBuffer_get_val(ctx.ring_buffer_Rx, &packet_type);
         if (false == status)
@@ -116,7 +123,7 @@ bool SynthCom_process(void)
         }
 
         /* Get the rest of the data */
-        for (size_t i = 0; i < payload_packets[packet_type]; i++)
+        for (size_t i = 0U; i < payload_packets[packet_type]; i++)
         {
             status = RingBuffer_get_val(ctx.ring_buffer_Rx, (tmp_buffer + i));
             if (false == status)

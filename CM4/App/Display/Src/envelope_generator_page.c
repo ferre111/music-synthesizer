@@ -81,12 +81,12 @@ static void encoder_hold_fun(void);
 void EnvelopeGenerator_page_init(void)
 {
     /* create all the drawable objects present on this page */
-    OLED_createTextField(&ctx.heading_id, 40U, 0U, ctx.heading_txt, 2U, false);
+    OLED_createTextField(&ctx.heading_id, 22U, 0U, ctx.heading_txt, 2U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_id, 0U, 16U, ctx.settings_data[CURRENT_SETTING_SUSTAIN_LEVEL].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_id, 0U, 24U, ctx.settings_data[CURRENT_SETTING_ATTACK_TIME].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_id, 0U, 32U, ctx.settings_data[CURRENT_SETTING_DECAY_TIME].setting_txt, 1U, false);
     OLED_createTextField(&ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_id, 0U, 40U, ctx.settings_data[CURRENT_SETTING_RELEASE_TIME].setting_txt, 1U, false);
-    snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "ADSR");
+    snprintf(ctx.heading_txt, NUMBER_OF_LETTERS_IN_LINE, "AMPL EG");
 }
 
 //----------------------------------------------------------------------
