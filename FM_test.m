@@ -1,8 +1,8 @@
 clc; close all; clear;
 
-fc = 261;
-fm = 261 * 2;
-B = 2;
+fc = 523;
+fm = 10;
+B = 3;
 fs = 48000;
 
 t = 0:1/fs:20 - 1/fs;

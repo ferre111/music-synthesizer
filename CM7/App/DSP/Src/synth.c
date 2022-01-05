@@ -33,18 +33,18 @@ static synth_voice voices_tab[VOICE_COUNT];
 /* Basic notes array */
 const static double note_freq[12] =
 {
-    [NOTE_C]    = 16.35,
-    [NOTE_Db]   = 17.32,
-    [NOTE_D]    = 18.35,
-    [NOTE_Eb]   = 19.45,
-    [NOTE_E]    = 20.60,
-    [NOTE_F]    = 21.83,
-    [NOTE_Gb]   = 23.12,
-    [NOTE_G]    = 24.50,
-    [NOTE_Ab]   = 25.96,
-    [NOTE_A]    = 27.50,
-    [NOTE_Bb]   = 29.14,
-    [NOTE_B]    = 30.87
+    [NOTE_C]    = 16.35160,
+    [NOTE_Db]   = 17.32391,
+    [NOTE_D]    = 18.35405,
+    [NOTE_Eb]   = 19.44544,
+    [NOTE_E]    = 20.60172,
+    [NOTE_F]    = 21.82676,
+    [NOTE_Gb]   = 23.12465,
+    [NOTE_G]    = 24.49971,
+    [NOTE_Ab]   = 25.95654,
+    [NOTE_A]    = 27.50000,
+    [NOTE_Bb]   = 29.13524,
+    [NOTE_B]    = 30.86771
 };
 
 static double dependent_frequency_coef[Dependent_frequency_end] =
@@ -60,7 +60,7 @@ static double dependent_frequency_coef[Dependent_frequency_end] =
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .pitch_bend_val = CENTER_PITCH_BEND,
+static synth ctx __attribute((section(".synth_ctx"))) = {.voices_tab = voices_tab, .dma_flag = true, .pitch_bend_val = CENTER_PITCH_BEND, .type_of_synth = TYPES_OF_SYNTH_NONE,
                                                          .osc[FIRST_OSC] = {.activated = true, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .volume = 100U},
                                                          .osc[SECOND_OSC] = {.activated = false, .shape = WAVETABLE_SHAPE_SINE, .octave_offset = OSC_OFFSET_COEF, .phase = 0U, .volume = 100U},
                                                          .osc_fm = {.shape_carrier_osc = WAVETABLE_SHAPE_SINE, .shape_modulator_osc = WAVETABLE_SHAPE_SINE, .modulation_index = 1.0, .freq_mode = FREQUENCY_MODE_DEPENDENT_X1, .freq = 3U, .volume = 100},
@@ -74,7 +74,7 @@ static void synth_fm_set_modulator_increaser_and_scaled_modulation_index(synth_v
 static int16_t synth_velocity_and_oscillator_volume(double val, synth_voice* sin_gen_voice, uint8_t volume);
 inline static void synth_write_one_sample(uint32_t current_sample, int16_t value);
 static void synth_wavetable_synthesis(synth_voice* voice, uint8_t osc_number);
-static void synth_IIR_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number);
+static void synth_IIR_synthesis(synth_voice* voice, uint8_t osc_number);
 static void synth_FM_synthesis(synth_voice* voice);
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
@@ -414,8 +414,8 @@ static int16_t synth_velocity_and_oscillator_volume(double val, synth_voice* sin
 {
     int16_t new_val = 0.0;
 
-    new_val = (int16_t)((val * (double)sin_gen_voice->velocity * (double)volume) /
-              (double)(MAX_VELOCITY * MAX_OSCILLATOR_VOLUME));
+    new_val = round(((val * (double)sin_gen_voice->velocity * (double)volume) /
+              (double)(MAX_VELOCITY * MAX_OSCILLATOR_VOLUME)));
 
     return new_val;
 }
@@ -429,18 +429,34 @@ static void synth_wavetable_synthesis(synth_voice* voice, uint8_t osc_number)
     {
         /* write sample after envelope generator edit it */
         synth_write_one_sample(sample,
-                synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[osc_number][voice->current_sample[osc_number]], voice, ctx.osc[osc_number].volume));
+                synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[osc_number][(uint32_t)round((double)voice->current_sample[osc_number] / (double)ACCUMULATOR_COEF)], voice, ctx.osc[osc_number].volume));
 
         /* set next sample from wavetable */
-        voice->current_sample[osc_number] += (uint32_t)voice->freq[osc_number];
+        voice->current_sample[osc_number] += (uint32_t)round((voice->freq[osc_number] * (double)ACCUMULATOR_COEF));
 
         /* check if current sample variable is bigger than wavetable length */
-        if (voice->current_sample[osc_number] >= SAMPLE_COUNT)
+        if (voice->current_sample[osc_number] >= ACCUMULATOR_SIZE)
         {
             /* if so perform modulo */
-            voice->current_sample[osc_number] = voice->current_sample[osc_number] % SAMPLE_COUNT;
+            voice->current_sample[osc_number] = voice->current_sample[osc_number] % ACCUMULATOR_SIZE;
         }
     }
+//    for (uint32_t sample = 0U; sample < PACKED_SIZE; sample += 2U)
+//    {
+//        /* write sample after envelope generator edit it */
+//        synth_write_one_sample(sample,
+//                synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[osc_number][voice->current_sample[osc_number]], voice, ctx.osc[osc_number].volume));
+//
+//        /* set next sample from wavetable */
+//        voice->current_sample[osc_number] += (uint32_t)round(voice->freq[osc_number]);
+//
+//        /* check if current sample variable is bigger than wavetable length */
+//        if (voice->current_sample[osc_number] >= SAMPLE_COUNT)
+//        {
+//            /* if so perform modulo */
+//            voice->current_sample[osc_number] = voice->current_sample[osc_number] % SAMPLE_COUNT;
+//        }
+//    }
 
 //    if (VOICE_STATUS_OFF == voice->voice_status)
 //    {
@@ -464,10 +480,10 @@ static void synth_FM_synthesis(synth_voice* voice)
     {
         /* write sample after envelope generator edit it */
         synth_write_one_sample(sample,
-                (synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[FIRST_OSC][voice->current_sample[FIRST_OSC]], voice, ctx.osc_fm.volume)));
+                (synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[FIRST_OSC][(uint32_t)round((double)voice->current_sample[FIRST_OSC] / (double)ACCUMULATOR_COEF)], voice, ctx.osc_fm.volume)));
 
         /* set next sample from wavetable */
-        voice->current_sample[FIRST_OSC] += round(voice->freq[FIRST_OSC] + (voice->scaled_modulation_index * (double)wavetable_ram[SECOND_OSC][voice->current_sample[SECOND_OSC]] / 3276.7));
+        voice->current_sample[FIRST_OSC] += (uint32_t)round(voice->freq[FIRST_OSC] * (double)ACCUMULATOR_COEF + (voice->scaled_modulation_index * (double)wavetable_ram[SECOND_OSC][(uint32_t)round((double)voice->current_sample[SECOND_OSC] / (double)ACCUMULATOR_COEF)] * (double)VOICE_COUNT) / 32767.0);
 
         /* check if current sample is below zero */
         if (voice->current_sample[FIRST_OSC] < 0U)
@@ -475,38 +491,38 @@ static void synth_FM_synthesis(synth_voice* voice)
             /* if so increase current sample value until is bigger than 0 */
             do
             {
-                voice->current_sample[FIRST_OSC] += SAMPLE_COUNT;
+                voice->current_sample[FIRST_OSC] += ACCUMULATOR_SIZE;
             } while (voice->current_sample[FIRST_OSC] < 0U);
-            voice->current_sample[FIRST_OSC] = 0;
+//            voice->current_sample[FIRST_OSC] = 0;
         }
 
         /* check if current sample variable is bigger than wavetable length */
-        if (voice->current_sample[FIRST_OSC] >= SAMPLE_COUNT)
+        if (voice->current_sample[FIRST_OSC] >= ACCUMULATOR_SIZE)
         {
             /* if so perform modulo */
-            voice->current_sample[FIRST_OSC] = voice->current_sample[FIRST_OSC] % SAMPLE_COUNT;
+            voice->current_sample[FIRST_OSC] = voice->current_sample[FIRST_OSC] % ACCUMULATOR_SIZE;
         }
 
         /* set next sample from wavetable */
-        voice->current_sample[SECOND_OSC] += voice->modulator_increaser;
+        voice->current_sample[SECOND_OSC] += (uint32_t)round((double)voice->modulator_increaser * (double)ACCUMULATOR_COEF);
 
         /* check if current sample variable is bigger than wavetable length */
-        if (voice->current_sample[SECOND_OSC] >= SAMPLE_COUNT)
+        if (voice->current_sample[SECOND_OSC] >= ACCUMULATOR_SIZE)
         {
             /* if so perform modulo */
-            voice->current_sample[SECOND_OSC] = voice->current_sample[SECOND_OSC] % SAMPLE_COUNT;
+            voice->current_sample[SECOND_OSC] = voice->current_sample[SECOND_OSC] % ACCUMULATOR_SIZE;
         }
     }
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-static void synth_IIR_synthesis(synth_voice* sin_gen_voice, uint8_t osc_number)
+static void synth_IIR_synthesis(synth_voice* voice, uint8_t osc_number)
 {
     for (uint32_t i = 0U; i < PACKED_SIZE; i += 2U)
     {
-        synth_write_one_sample(i, synth_velocity_and_oscillator_volume(EG_gen(&sin_gen_voice->amp_eg) *
-                (int16_t)(32767U * IIR_generator_get_next_val(&sin_gen_voice->IIR_generator)), sin_gen_voice, ctx.osc[osc_number].volume) / VOICE_COUNT);
+        synth_write_one_sample(i, synth_velocity_and_oscillator_volume((EG_gen(&voice->amp_eg) *
+                32767 * IIR_generator_get_next_val(&voice->IIR_generator)) / VOICE_COUNT, voice, ctx.osc[osc_number].volume));
     }
 }
 

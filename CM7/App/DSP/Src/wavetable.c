@@ -68,7 +68,7 @@ void Wavetable_load_new_wavetable(synth_oscillator *oscillator)
 
             for (uint32_t sample = 0U; sample < SAMPLE_COUNT; sample++)
             {
-                wavetable_ram[osc][sample] = (*(int16_t*)(basic_address + sample * 2U)) / (int16_t)(count_currently_enabled_osc * VOICE_COUNT);
+                wavetable_ram[osc][sample] = round((double)(*(int16_t*)(basic_address + sample * 2U)) / (double)(count_currently_enabled_osc * VOICE_COUNT));
             }
         }
     }

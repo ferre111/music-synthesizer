@@ -1,34 +1,24 @@
 clc; close all; clear;
 
-fc = 261;
-fm = 261 * 2;
-B = 2;
+ACC_COUNT = 4800000;
+
+fc = 1.36;
 fs = 48000;
 
 t = 0:1/fs:20-1/fs;
 L = length(t);
-f = fs*(0:(L/2))/L;
+
 
 sin_wavetable = sin(2*pi*1*t);
 
-sample_c = 1;
-sample_m = 1;
+sample = 1;
 for i = 1:1:length(t)
-    sample_c = round(sample_c + B * fm * sin_wavetable(sample_m) + fc);
+    x(i) = sin_wavetable(round(sample / 100) + 1);
+    
+        sample = round(sample + fc * 100);
 
-    if (sample_c > 48000)
-        sample_c = mod(sample_c, 48000);
-    end
-
-    if (sample_c < 1)
-        sample_c = 48000 + sample_c;
-    end    
-
-    x(i) = sin_wavetable(sample_c);
-
-    sample_m = round(sample_m + fm);
-    if (sample_m > 48000)
-        sample_m = mod(sample_m, 48000);
+    if (sample > ACC_COUNT)
+        sample = mod(sample, ACC_COUNT);
     end
 end
 
@@ -36,7 +26,9 @@ end
 
 %figure (1)
 %plot(tx, x)
-
+x = [x, x];
+L = length(x);
+f = fs*(0:(L/2))/L;
 X = fft(x);
 
 P2 = abs(X) / L;
