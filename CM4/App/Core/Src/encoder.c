@@ -70,12 +70,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 //--------------------------------------------------------------------------------
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-//    static int16_t count = 0;
-//    if (htim == &htim3)
-//    {
-//        encoder_ctx.speed = encoder_ctx.count - count;
-//        count = encoder_ctx.count;
-//    }
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+////    static int16_t count = 0;
+////    if (htim == &htim3)
+////    {
+////        encoder_ctx.speed = encoder_ctx.count - count;
+////        count = encoder_ctx.count;
+////    }
+//}

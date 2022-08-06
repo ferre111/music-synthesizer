@@ -14,7 +14,7 @@
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
-int16_t wavetable_ram[OSCILLATOR_COUNTS][SAMPLE_COUNT];
+extern int16_t wavetable_ram[OSCILLATOR_COUNTS][SAMPLE_COUNT];
 
 void Wavetable_init(void);
 void Wavetable_load_new_wavetable(synth_oscillator *osc);

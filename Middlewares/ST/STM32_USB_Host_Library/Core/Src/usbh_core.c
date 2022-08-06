@@ -135,7 +135,7 @@ USBH_StatusTypeDef  USBH_Init(USBH_HandleTypeDef *phost,
 
   /* Create USB Host Task */
 #if defined (USBH_PROCESS_STACK_SIZE)
-  osThreadDef(USBH_Thread, USBH_Process_OS, USBH_PROCESS_PRIO, 0U, USBH_PROCESS_STACK_SIZE);
+  osThreadDef(USBH_Thread, USBH_Process_OS, osPriorityNormal, 0U, USBH_PROCESS_STACK_SIZE);
 #else
   osThreadDef(USBH_Thread, USBH_Process_OS, USBH_PROCESS_PRIO, 0U, 8U * configMINIMAL_STACK_SIZE);
 #endif /* defined (USBH_PROCESS_STACK_SIZE) */

@@ -29,6 +29,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_MIDI.h"
+#include "cmsis_os.h"
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -339,7 +340,7 @@ USBH_StatusTypeDef  USBH_MIDI_Transmit(USBH_HandleTypeDef *phost, uint8_t *pbuff
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------*/
-
+osStatus osMessagePut (osMessageQId queue_id, uint32_t info, uint32_t millisec); //todo
 /**
  * @brief  This function prepares the state before issuing the class specific commands
  * @param  None

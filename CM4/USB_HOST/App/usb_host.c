@@ -26,7 +26,7 @@
 #include "usbh_audio.h"
 
 /* USER CODE BEGIN Includes */
-#include "usbh_midi.h"
+#include "usbh_MIDI.h"
 
 #include "midi.h"
 
@@ -93,14 +93,6 @@ void MX_USB_HOST_Init(void)
   /* USER CODE END USB_HOST_Init_PostTreatment */
 }
 
-/*
- * Background task
- */
-void MX_USB_HOST_Process(void)
-{
-  /* USB Host Background task */
-  USBH_Process(&hUsbHostFS);
-}
 /*
  * user callback definition
  */

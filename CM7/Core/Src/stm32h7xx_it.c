@@ -256,8 +256,6 @@ void TIM16_IRQHandler(void)
   /* USER CODE END TIM16_IRQn 0 */
   HAL_TIM_IRQHandler(&htim16);
   /* USER CODE BEGIN TIM16_IRQn 1 */
-  /* Turn off error indicator after 2s */
-  utility_ErrLedOff();
 
   /* USER CODE END TIM16_IRQn 1 */
 }

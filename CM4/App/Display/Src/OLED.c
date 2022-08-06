@@ -9,6 +9,8 @@
 #include "spi.h"
 #include "main.h"
 #include "ascii_font.h"
+#include "FreeRTOS.h"
+#include "portmacro.h"
 
 //---------------------------------------------------------------------------------------
 // DEFINES
@@ -555,6 +557,7 @@ void OLED_update()
 
 //    HAL_SPI_Transmit(&hspi1, (uint8_t *)(oled.buffers[SECOND_BUFFER].buffer), 1024, TIMEOUT);
 //    oled.currentBuffer->writeDone = false;
+    vPortEnterCritical();
     if (true == oled_ctx.sendDone)
     {
         //HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, RESET);
@@ -572,6 +575,7 @@ void OLED_update()
         oled_ctx.sendDone = false;
         oled_ctx.currentBuffer->writeDone = false;
     }
+    vPortExitCritical();
 }
 
 void OLED_setDisplayOn()

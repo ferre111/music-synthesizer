@@ -6,6 +6,7 @@
  */
 
 #include "midi.h"
+#include "cmsis_os.h"
 #include "usbh_MIDI.h"
 #include "usb_host.h"
 #include "stdbool.h"
