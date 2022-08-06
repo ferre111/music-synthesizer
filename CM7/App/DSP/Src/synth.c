@@ -114,7 +114,7 @@ void Synth_process(void)
  {
     if (ctx.dma_flag)
     {
-        utility_TimeMeasurmentsSetHigh();
+//        utility_TimeMeasurmentsSetHigh();
 
         /* Choose buffer that is not currently send */
         if (ctx.table_ptr == ctx.table)
@@ -167,7 +167,7 @@ void Synth_process(void)
 //        SCB_CleanDCache_by_Addr((uint32_t*)ctx.table_ptr, PACKED_SIZE * 2);
         ctx.dma_flag = false;
         ctx.buff_ready = true;
-        utility_TimeMeasurmentsSetLow();
+//        utility_TimeMeasurmentsSetLow();
     }
 }
 
@@ -483,7 +483,7 @@ static void synth_FM_synthesis(synth_voice* voice)
                 (synth_velocity_and_oscillator_volume(EG_gen(&voice->amp_eg) * wavetable_ram[FIRST_OSC][(uint32_t)round((double)voice->current_sample[FIRST_OSC] / (double)ACCUMULATOR_COEF)], voice, ctx.osc_fm.volume)));
 
         /* set next sample from wavetable */
-        voice->current_sample[FIRST_OSC] += (uint32_t)round(voice->freq[FIRST_OSC] * (double)ACCUMULATOR_COEF + (voice->scaled_modulation_index * (double)wavetable_ram[SECOND_OSC][(uint32_t)round((double)voice->current_sample[SECOND_OSC] / (double)ACCUMULATOR_COEF)] * (double)VOICE_COUNT) / 32767.0);
+        voice->current_sample[FIRST_OSC] += (uint32_t)round((voice->freq[FIRST_OSC] + (voice->scaled_modulation_index * (double)wavetable_ram[SECOND_OSC][(uint32_t)round((double)voice->current_sample[SECOND_OSC] / (double)ACCUMULATOR_COEF)] * (double)VOICE_COUNT) / 32767.0)  * (double)ACCUMULATOR_COEF);
 
         /* check if current sample is below zero */
         if (voice->current_sample[FIRST_OSC] < 0U)
